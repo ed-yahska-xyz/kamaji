@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Akshay Shinde</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        .blog-header {
+            padding: 4rem 0 2rem 0;
+            text-align: center;
+            background: var(--color-yellow);
+            border-bottom: 3px solid var(--color-black);
+        }
+
+        .blog-title {
+            font-size: 3.5rem;
+            color: var(--color-black);
+            text-shadow: none;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .blog-subtitle {
+            color: var(--color-black);
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .blog-container {
+            padding: 3rem 0;
+        }
+
+        .blog-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .blog-post {
+            background: var(--color-yellow);
+            border: 3px solid var(--color-black);
+            border-radius: 0;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .blog-post:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0 var(--color-black);
+        }
+
+        .blog-post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .blog-post-title {
+            color: var(--color-black);
+            font-size: 1.8rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .blog-post-date {
+            color: var(--color-black);
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .blog-post-excerpt {
+            color: var(--color-black);
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .blog-post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .blog-tag {
+            background: var(--color-black);
+            color: var(--color-yellow);
+            padding: 0.3rem 0.8rem;
+            border-radius: 0;
+            border: 2px solid var(--color-black);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .blog-loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--color-black);
+            font-size: 1.2rem;
+        }
+
+        .blog-empty {
+            text-align: center;
+            padding: 4rem;
+            background: var(--color-yellow);
+            border: 3px solid var(--color-black);
+            border-radius: 0;
+            box-shadow: 8px 8px 0 var(--color-black);
+        }
+
+        .blog-empty h3 {
+            color: var(--color-black);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .blog-empty p {
+            color: var(--color-black);
+            opacity: 0.7;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            background: var(--color-yellow);
+            color: var(--color-black);
+            border: 3px solid var(--color-black);
+            padding: 0.5rem 1.5rem;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--color-black);
+            color: var(--color-yellow);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 var(--color-black);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">AS</div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/blog" class="nav-link active">Blog</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="blog-header">
+        <div class="container">
+            <h1 class="blog-title">Blog</h1>
+            <p class="blog-subtitle">Thoughts on tech, code, and creative computing</p>
+        </div>
+    </header>
+
+    <main class="blog-container container">
+        <div class="filter-section">
+            <button class="filter-btn active"
+                    hx-get="/api/blog-posts"
+                    hx-target="#blog-posts"
+                    hx-swap="innerHTML">
+                All Posts
+            </button>
+            <button class="filter-btn"
+                    hx-get="/api/blog-posts?tag=frontend"
+                    hx-target="#blog-posts"
+                    hx-swap="innerHTML">
+                Frontend
+            </button>
+            <button class="filter-btn"
+                    hx-get="/api/blog-posts?tag=ai"
+                    hx-target="#blog-posts"
+                    hx-swap="innerHTML">
+                AI
+            </button>
+            <button class="filter-btn"
+                    hx-get="/api/blog-posts?tag=graphics"
+                    hx-target="#blog-posts"
+                    hx-swap="innerHTML">
+                Graphics
+            </button>
+        </div>
+
+        <div id="blog-posts"
+             hx-get="/api/blog-posts"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="blog-loading">Loading posts...</div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Akshay Shinde. Built with Bun + HTMX.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Add active class to filter buttons
+        document.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target.id === 'blog-posts') {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                if (evt.detail.xhr.responseURL.includes('blog-posts')) {
+                    const clickedBtn = document.querySelector(`[hx-get="${evt.detail.xhr.responseURL.split(window.location.origin)[1]}"]`);
+                    if (clickedBtn) clickedBtn.classList.add('active');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
