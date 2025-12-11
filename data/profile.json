@@ -1,0 +1,50 @@
+{
+  "name": "Akshay Shinde",
+  "initials": "AS",
+  "tagline": "Software Engineer & Creative Technologist",
+  "birthdate": "July 1, 1991",
+  "education": {
+    "degree": "Masters of Computer Science",
+    "university": "Oregon State University"
+  },
+  "stats": [
+    { "value": "10+", "label": "Years Experience" },
+    { "value": "M.S.", "label": "Computer Science" },
+    { "value": "4", "label": "Core Interests" }
+  ],
+  "interests": [
+    {
+      "id": "frontend",
+      "icon": "💻",
+      "title": "Front End Development",
+      "description": "Creating beautiful and intuitive user interfaces"
+    },
+    {
+      "id": "ai",
+      "icon": "🤖",
+      "title": "Artificial Intelligence",
+      "description": "Exploring machine learning and AI applications"
+    },
+    {
+      "id": "graphics",
+      "icon": "🎨",
+      "title": "Computer Graphics",
+      "description": "Bringing ideas to life through visual computing"
+    },
+    {
+      "id": "software",
+      "icon": "⚙️",
+      "title": "Software Engineering",
+      "description": "Building robust and scalable systems"
+    }
+  ],
+  "cta": {
+    "title": "Let's Connect",
+    "subtitle": "Interested in collaborating or just want to say hi?",
+    "buttonText": "Get In Touch"
+  },
+  "footer": {
+    "copyright": "2024 Akshay Shinde",
+    "tagline": "Built with Bun + Hono + HTMX."
+  }
+}
