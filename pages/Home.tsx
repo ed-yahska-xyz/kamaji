@@ -20,8 +20,9 @@ export const HomePage: FC<HomePageProps> = ({ profile }) => {
             <div class="resume-contact">
               <button
                 class="contact-btn"
-                hx-post="/api/contact"
-                hx-swap="outerHTML"
+                hx-get="/api/contact"
+                hx-target="body"
+                hx-swap="beforeend"
               >
                 {profile.cta.buttonText}
               </button>
@@ -30,10 +31,12 @@ export const HomePage: FC<HomePageProps> = ({ profile }) => {
 
           <section class="resume-section">
             <h2 class="resume-section-title">Education</h2>
-            <div class="resume-item">
-              <span class="resume-degree">{profile.education.degree}</span>
-              <span class="resume-school">{profile.education.university}</span>
-            </div>
+            {profile.education.map((edu) => (
+              <div class="resume-item">
+                <span class="resume-degree">{edu.degree}</span>
+                <span class="resume-school">{edu.university}</span>
+              </div>
+            ))}
           </section>
 
           <section class="resume-section">
@@ -49,38 +52,6 @@ export const HomePage: FC<HomePageProps> = ({ profile }) => {
           </section>
         </div>
       </aside>
-
-      <main class="resume-main">
-        <section class="resume-section">
-          <h2 class="resume-section-title">About</h2>
-          <p class="resume-about">
-            Born on {profile.birthdate}. Passionate about building innovative software solutions
-            and exploring the intersection of technology and creativity.
-          </p>
-        </section>
-
-        <section class="resume-section">
-          <h2 class="resume-section-title">Areas of Expertise</h2>
-          <div class="resume-skills">
-            {profile.interests.map((interest) => (
-              <div
-                class="resume-skill"
-                hx-get={`/api/interest/${interest.id}`}
-                hx-trigger="click"
-                hx-swap="innerHTML"
-                hx-target="#skill-detail"
-              >
-                <span class="skill-icon">{interest.icon}</span>
-                <div class="skill-content">
-                  <h3 class="skill-title">{interest.title}</h3>
-                  <p class="skill-desc">{interest.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div id="skill-detail" class="skill-detail"></div>
-        </section>
-      </main>
     </div>
   );
 };

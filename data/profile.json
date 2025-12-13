@@ -1,16 +1,21 @@
 {
   "name": "Akshay Shinde",
   "initials": "AS",
-  "tagline": "Software Engineer & Creative Technologist",
+  "tagline": "Software Engineer at Ebay",
   "birthdate": "July 1, 1991",
-  "education": {
-    "degree": "Masters of Computer Science",
-    "university": "Oregon State University"
-  },
+  "education": [
+    {
+      "degree": "Masters of Computer Science",
+      "university": "Oregon State University"
+    },
+    {
+      "degree": "Bachelor of Engineering",
+      "university": "Mumbai University"
+    }
+  ],
   "stats": [
-    { "value": "10+", "label": "Years Experience" },
-    { "value": "M.S.", "label": "Computer Science" },
-    { "value": "4", "label": "Core Interests" }
+    { "value": "7+", "label": "Years Experience" },
+    { "value": "M.S.", "label": "Computer Science" }
   ],
   "interests": [
     {
@@ -38,6 +43,9 @@
       "description": "Building robust and scalable systems"
     }
   ],
+  "contact": {
+    "email": "s.yahska@gmail.com"
+  },
   "cta": {
     "title": "Let's Connect",
     "subtitle": "Interested in collaborating or just want to say hi?",

@@ -1,5 +1,12 @@
 import type { FC, PropsWithChildren } from "hono/jsx";
+import { html } from "hono/html";
 import type { Profile } from "../data/types.ts";
+
+const ScrollEffects = () => html`
+  <script type="module">
+    import "/js/scroll-effects.js";
+  </script>
+`;
 
 type LayoutProps = PropsWithChildren<{
   title: string;
@@ -20,8 +27,8 @@ export const Layout: FC<LayoutProps> = ({ title, profile, children }) => {
         <nav class="navbar">
           <div class="container">
             <div class="nav-brand">
-              <h1>Akshay Shinde</h1>
-              <div class="subtitle">I ❤️ Engineering, Computer Graphics & Anime</div>
+              <h1 class="navbar-title-hidden">Akshay Shinde</h1>
+              <div class="subtitle navbar-subtitle-shifted">Engineering with Purpose, Creativity & a Bit of Fun</div>
             </div>
             <div class="nav-links">
               <a href="/" class="nav-link">Home</a>
@@ -39,6 +46,7 @@ export const Layout: FC<LayoutProps> = ({ title, profile, children }) => {
             <p>&copy; {profile.footer.copyright}. {profile.footer.tagline}</p>
           </div>
         </footer>
+        <ScrollEffects />
       </body>
     </html>
   );

@@ -1,4 +1,11 @@
 import type { FC } from "hono/jsx";
+import { html } from "hono/html";
+
+const DogfightScript = () => html`
+  <script type="module">
+    import "/js/dogfight-init.js";
+  </script>
+`;
 
 export const Dogfight: FC<{ width?: number; height?: number }> = ({
   width = 800,
@@ -14,7 +21,7 @@ export const Dogfight: FC<{ width?: number; height?: number }> = ({
       >
         Your browser does not support the canvas element.
       </canvas>
-      <script src="/dogfight-init.js"></script>
+      <DogfightScript />
     </div>
   );
 };
