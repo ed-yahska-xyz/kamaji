@@ -1,9 +1,12 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import { Layout } from "./components/Layout.tsx";
+import { ContributionsView } from "./components/Contributions.tsx";
 import { HomePage } from "./pages/Home.tsx";
 import { BlogPage } from "./pages/Blog.tsx";
 import profile from "./data/profile.json";
+import { getContributions } from "./src/services/github/index.ts";
+
 
 const app = new Hono();
 
@@ -61,6 +64,14 @@ app.get("/api/contact", (c) => {
       </div>
     </div>
   );
+});
+
+app.get("/api/github-contributions", async (c) => {
+  const contributions = await getContributions();
+  const contributionsJSON = contributions;
+  return c.html(
+    <ContributionsView weeks={contributionsJSON?.data?.viewer?.contributionsCollection?.contributionCalendar?.weeks}/>
+  )
 });
 
 export default {

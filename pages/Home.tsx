@@ -1,5 +1,6 @@
 import type { FC } from "hono/jsx";
 import type { Profile } from "../data/types.ts";
+import { ContributionsView } from "../components/Contributions.tsx";
 
 type HomePageProps = {
   profile: Profile;
@@ -14,7 +15,9 @@ export const HomePage: FC<HomePageProps> = ({ profile }) => {
             <h1 class="resume-name">{profile.name}</h1>
             <p class="resume-tagline">{profile.tagline}</p>
           </header>
-
+          <section hx-get="/api/github-contributions" hx-trigger="load" hx-swap="outerHTML">
+            <ContributionsView weeks={[]}/>
+          </section>
           <section class="resume-section">
             <h2 class="resume-section-title">Contact</h2>
             <div class="resume-contact">
