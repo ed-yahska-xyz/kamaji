@@ -1,5 +1,14 @@
-import { Glob } from "bun";
+import { Glob, $ } from "bun";
+import { mkdir, cp } from "fs/promises";
+import { dirname, join } from "path";
 
+// Build Zig WASM
+console.log("Building Zig WASM...");
+await $`cd projects/boids/wasm && zig build`;
+await cp("projects/boids/wasm/zig-out/bin/Boids.wasm", "projects/boids/boids.wasm");
+console.log("✓ Built Zig WASM → projects/boids/boids.wasm");
+
+// Build TypeScript client files
 const entrypoints = new Glob("src/client/*.ts");
 
 const results = await Bun.build({
@@ -21,4 +30,24 @@ if (!results.success) {
 console.log(`✓ Built ${results.outputs.length} file(s) to public/js/`);
 for (const output of results.outputs) {
   console.log(`  - ${output.path}`);
+}
+
+// Copy static assets (html, js, css, wasm) from projects to public
+const assetGlob = new Glob("projects/**/*.{html,js,css,wasm}");
+const copiedFiles: string[] = [];
+
+for await (const file of assetGlob.scan(".")) {
+  const destPath = join("public", file);
+  const destDir = dirname(destPath);
+
+  await mkdir(destDir, { recursive: true });
+  await cp(file, destPath);
+  copiedFiles.push(file);
+}
+
+if (copiedFiles.length > 0) {
+  console.log(`\n✓ Copied ${copiedFiles.length} static file(s) to public/`);
+  for (const file of copiedFiles) {
+    console.log(`  - ${file} → public/${file}`);
+  }
 }

@@ -6,6 +6,13 @@ out
 dist
 *.tgz
 public/js
+public/projects
+
+# zig
+zig-out
+.zig-cache
+.zig-cache/
+*.wasm
 
 # code coverage
 coverage
