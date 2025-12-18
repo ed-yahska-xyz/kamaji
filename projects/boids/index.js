@@ -1,57 +1,26 @@
-
-class Boid {
-  constructor(x=Math.random(), y=Math.random()) {
-    this.x = x;
-    this.y = y;
-    this.mx = 0;
-    this.my = 0;
-  }
-
-  move(dx, dy) {
-    this.x += dx;
-    this.y += dy;
-  }
-}
-
-
-class Boids {
-  constructor(count=100) {
-    this.count = count;
-    this.birds = [...new Array(count)];
-    for(let i = 0; i < this.birds.length; i++) {
-      this.birds[i] = new Boid();
-    }
-  }
-}
-
+// Constants
+const NUM_BOIDS = 500;
+const BOID_RADIUS = 5;
+const FLOATS_PER_BOID = 4; // x, y, vx, vy
 
 let container = document.querySelector('#app');
-let boids = new Boids(100);
 const canvas = document.getElementById("canvas");
 canvas.height = container.clientHeight;
 canvas.width = container.clientWidth;
-const birdRadius = 5;
-const margin = birdRadius / 2;
+const margin = BOID_RADIUS / 2;
 let effectiveWidth = canvas.width - margin;
 let effectiveHeight = canvas.height - margin;
 const ctx = canvas.getContext("2d");
-ctx.fillStyle = "white";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+// WASM memory and boid data
+const memory = new WebAssembly.Memory({
+  initial: 32,
+  maximum: 100
+});
 
-
-function moveBoid(birds, index) {
-  const add = (a, b) => a + b;
-  const sub = (a, b) => a - b;
-  let fx = Math.random() < 0.5 ? add : sub;
-  let fy = Math.random() < 0.5 ? add : sub;
-  if (birds[index].y > 0.95) fy = sub;
-  if (birds[index].x > 0.95) fx = sub;
-  if (birds[index].y < 0.05) fy = add;
-  if (birds[index].x < 0.05) fx = add;
-  birds[index].y = fy(birds[index].y, 0.01);
-  birds[index].x = fx(birds[index].x, 0.01);
-}
+let boidsPtr = null;
+let boidsData = null;
+let wasmMoveBoid = null;
 
 function throttle(func, timeFrame) {
   var lastTime = 0;
@@ -64,14 +33,7 @@ function throttle(func, timeFrame) {
   };
 }
 
-window.addEventListener('resize', function () {
-  throttle(init, 1000)();
-})
-const memory = new WebAssembly.Memory({
-  initial: 32,
-  maximum: 100
-});
-let importObject = {
+const importObject = {
   env: {
     memoryBase: 0,
     tableBase: 0,
@@ -79,62 +41,81 @@ let importObject = {
     table: new WebAssembly.Table({initial: 32, element: 'anyfunc'}),
     abort: alert,
     jsRandom: function() {
-      return Math.random()
+      return Math.random();
     }
   }
-}
+};
+
 WebAssembly.instantiateStreaming(fetch('./boids/boids.wasm'), importObject).then((result) => {
-  const add = result.instance.exports.add;
-  const createBoids = result.instance.exports.createBoids;
-  const sizeOfBoid = 4
-  const numberOfBoids = 1
-  const boidz = createBoids(numberOfBoids);
+  const exports = result.instance.exports;
+  const alloc = exports.alloc;
+  wasmMoveBoid = exports.moveBoid;
 
-  const b = new DataView(memory.buffer, boidz);
-  for (let i=0; i<numberOfBoids; i+=1) {
-    for (let j = 0; j < 4;) {
-      boids.birds[j].x = b.getFloat32(i*j*sizeOfBoid, true);
-      j+=1;
-      boids.birds[j].y = b.getFloat32(i*j*sizeOfBoid, true);
-      j+=1;
-      boids.birds[j].mx = b.getFloat32(i*j*sizeOfBoid, true);
-      j+=1;
-      boids.birds[j].my = b.getFloat32(i*j*sizeOfBoid, true);
-      j+=1;
-    }
+  // Allocate memory for boids: NUM_BOIDS * 4 floats (x, y, vx, vy)
+  const totalFloats = NUM_BOIDS * FLOATS_PER_BOID;
+  boidsPtr = alloc(totalFloats);
+
+  // Create a Float32Array view into WASM memory
+  boidsData = new Float32Array(memory.buffer, boidsPtr, totalFloats);
+
+  // Initialize boids with random positions and velocities
+  for (let i = 0; i < NUM_BOIDS; i++) {
+    const idx = i * FLOATS_PER_BOID;
+    boidsData[idx] = Math.random() * canvas.width;      // x
+    boidsData[idx + 1] = Math.random() * canvas.height; // y
+    boidsData[idx + 2] = (Math.random() - 0.5) * 4;     // vx
+    boidsData[idx + 3] = (Math.random() - 0.5) * 4;     // vy
   }
 
-  function init() {
-    container = document.querySelector('#app');
-    canvas.height = container.clientHeight;
-    canvas.width = container.clientWidth;
-    effectiveWidth = canvas.width - margin;
-    effectiveHeight = canvas.height - margin;
-    requestAnimationFrame(update)
-  }
-  
-  function update() {
-    ctx.fillStyle = "white";
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle="black";
-    ctx.beginPath();
-  
-    for(let i = 0; i < boids.birds.length; i++) {
-      moveBoid(boids.birds, i);
-      let x = margin + boids.birds[i].x * effectiveWidth;
-      let y = margin + boids.birds[i].y * effectiveHeight;
-      y = Math.min(effectiveHeight - birdRadius / 2, y);
-      x = Math.min(effectiveWidth - birdRadius / 2, x);
-      ctx.moveTo(x, y);
-      ctx.arc(x, y, birdRadius, 0, 2*Math.PI);
-    }
-    ctx.fill();
-    //requestAnimationFrame(update)
-    setTimeout(() => {
-      requestAnimationFrame(update)
-    }, 16);
-  }
-  
   init();
 });
+
+window.addEventListener('resize', function () {
+  throttle(init, 1000)();
+});
+
+function init() {
+  container = document.querySelector('#app');
+  canvas.height = container.clientHeight;
+  canvas.width = container.clientWidth;
+  effectiveWidth = canvas.width - margin;
+  effectiveHeight = canvas.height - margin;
+  requestAnimationFrame(update);
+}
+
+function update() {
+  // Clear canvas
+  ctx.fillStyle = "white";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Update boids using WASM
+  if (wasmMoveBoid && boidsPtr) {
+    wasmMoveBoid(boidsPtr, NUM_BOIDS, canvas.width, canvas.height);
+  }
+
+  // Draw boids
+  ctx.fillStyle = "black";
+  ctx.beginPath();
+
+  for (let i = 0; i < NUM_BOIDS; i++) {
+    const idx = i * FLOATS_PER_BOID;
+    const x = boidsData[idx];
+    const y = boidsData[idx + 1];
+    const vx = boidsData[idx + 2];
+    const vy = boidsData[idx + 3];
+
+    ctx.moveTo(x + BOID_RADIUS, y);
+    ctx.arc(x, y, BOID_RADIUS, 0, 2 * Math.PI);
+
+    // Optional: draw direction indicator
+    // const angle = Math.atan2(vy, vx);
+    // ctx.moveTo(x, y);
+    // ctx.lineTo(x + Math.cos(angle) * BOID_RADIUS * 2, y + Math.sin(angle) * BOID_RADIUS * 2);
+  }
+
+  ctx.fill();
+  ctx.stroke();
+
+  requestAnimationFrame(update);
+}

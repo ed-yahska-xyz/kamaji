@@ -10,6 +10,18 @@ import { getContributions } from "./src/services/github/index.ts";
 
 const app = new Hono();
 
+// Explicitly serve WASM files with correct content type
+app.get("*.wasm", async (c) => {
+  const path = `./public${c.req.path}`;
+  const file = Bun.file(path);
+  if (await file.exists()) {
+    return new Response(file, {
+      headers: { "Content-Type": "application/wasm" }
+    });
+  }
+  return c.notFound();
+});
+
 // Serve static files
 app.use("/*", serveStatic({ root: "./public" }));
 
