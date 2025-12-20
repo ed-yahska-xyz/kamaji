@@ -6,6 +6,7 @@
       "name": "kamaji",
       "dependencies": {
         "hono": "^4.10.8",
+        "relative-pathing": "github:ed-yahska-xyz/relative-pathing",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -15,6 +16,9 @@
       },
     },
   },
+  "trustedDependencies": [
+    "relative-pathing",
+  ],
   "packages": {
     "@types/bun": ["@types/bun@1.3.4", "", { "dependencies": { "bun-types": "1.3.4" } }, "sha512-EEPTKXHP+zKGPkhRLv+HI0UEX8/o+65hqARxLy8Ov5rIxMBPNTjeZww00CIihrIQGEQBYg+0roO5qOnS/7boGA=="],
 
@@ -23,6 +27,8 @@
     "bun-types": ["bun-types@1.3.4", "", { "dependencies": { "@types/node": "*" } }, "sha512-5ua817+BZPZOlNaRgGBpZJOSAQ9RQ17pkwPD0yR7CfJg+r8DgIILByFifDTa+IPDDxzf5VNhtNlcKqFzDgJvlQ=="],
 
     "hono": ["hono@4.10.8", "", {}, "sha512-DDT0A0r6wzhe8zCGoYOmMeuGu3dyTAE40HHjwUsWFTEy5WxK1x2WDSsBPlEXgPbRIFY6miDualuUDbasPogIww=="],
+
+    "relative-pathing": ["relative-pathing@github:ed-yahska-xyz/relative-pathing#cad2704", { "bin": { "relative-pathing": "./bin/relative-pathing" } }, "ed-yahska-xyz-relative-pathing-cad2704"],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
