@@ -1,9 +1,9 @@
 {
-  "base": "/assets",
+  "base": "/",
   "rewrite": [
-    { "fromPrefix": ".", "toPrefix": "./projects/" },
-    { "fromPrefix": "../", "toPrefix": "/assets/" }
+    { "fromPrefix": "/", "toPrefix": "/projects-showcase/" }
   ],
   "html": { "attrs": ["src", "href"] },
-  "css": { "rewriteUrl": true }
+  "css": { "rewriteUrl": true },
+  "js": { "rewriteUrl": true }
 }

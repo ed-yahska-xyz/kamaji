@@ -5,10 +5,11 @@
   "private": true,
   "scripts": {
     "build": "bun run build.ts",
+    "postbuild": "bun run relative-pathing",
     "build:watch": "bun run build.ts --watch",
     "dev": "bun run build && bun run --watch index.tsx",
     "start": "NODE_ENV=production bun run build && bun run index.tsx",
-    "relative-pathing": "npx relative-pathing --in ./dist --out ./public --rules relative-pathing.json"
+    "relative-pathing": "./node_modules/relative-pathing/bin/relative-pathing --in ./public/projects-showcase --out ./public/projects-showcase --rules ./relative-pathing.json"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -18,7 +19,7 @@
   },
   "dependencies": {
     "hono": "^4.10.8",
-    "relative-pathing": "github:ed-yahska-xyz/relative-pathing"
+    "relative-pathing": "github:ed-yahska-xyz/relative-pathing#main"
   },
   "trustedDependencies": [
     "relative-pathing"
