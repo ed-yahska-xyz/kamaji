@@ -4,9 +4,9 @@ import { dirname, join } from "path";
 
 // Build Zig WASM
 console.log("Building Zig WASM...");
-await $`cd projects/boids/wasm && zig build`;
-await cp("projects/boids/wasm/zig-out/bin/Boids.wasm", "projects/boids/boids.wasm");
-console.log("✓ Built Zig WASM → projects/boids/boids.wasm");
+await $`cd projects-showcase/boids/wasm && zig build`;
+await cp("projects-showcase/boids/wasm/zig-out/bin/Boids.wasm", "projects-showcase/boids/boids.wasm");
+console.log("✓ Built Zig WASM → projects-showcase/boids/boids.wasm");
 
 // Build TypeScript client files
 const entrypoints = new Glob("src/client/*.ts");
@@ -32,8 +32,8 @@ for (const output of results.outputs) {
   console.log(`  - ${output.path}`);
 }
 
-// Copy static assets (html, js, css, wasm) from projects to public
-const assetGlob = new Glob("projects/**/*.{html,js,css,wasm}");
+// Copy static assets (html, js, css, wasm) from projects-showcase to public
+const assetGlob = new Glob("projects-showcase/**/*.{html,js,css,wasm}");
 const copiedFiles: string[] = [];
 
 for await (const file of assetGlob.scan(".")) {
