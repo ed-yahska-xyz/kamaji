@@ -30,10 +30,6 @@ export const Layout: FC<LayoutProps> = ({ title, profile, children }) => {
               <h1 class="navbar-title-hidden">Akshay Shinde</h1>
               <div class="subtitle navbar-subtitle-shifted">Engineering with Purpose, Creativity & a Bit of Fun</div>
             </div>
-            <div class="nav-links">
-              <a href="/" class="nav-link">Home</a>
-              <a href="/blog" class="nav-link">Blog</a>
-            </div>
           </div>
         </nav>
 

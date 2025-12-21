@@ -125,10 +125,27 @@ body {
     color: var(--color-yellow);
 }
 
+#home-container {
+    position: relative;
+}
+.showcase {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    filter: blur(8px);
+}
+
+.showcase iframe {
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
 /* Resume Layout */
 .resume-layout {
     display: grid;
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 380px;
+    justify-content: center;
     gap: 3rem;
     padding: 3rem 0;
     min-height: calc(100vh - 80px);
@@ -150,7 +167,7 @@ body {
 
 .resume-header {
     margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
     border-bottom: 3px solid var(--color-black);
 }
 
