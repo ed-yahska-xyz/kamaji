@@ -10,7 +10,7 @@ export const HomePage: FC<HomePageProps> = ({ profile }) => {
   return (
     <div id="home-container">
       <div class="showcase">
-        <iframe scrolling="no" src="/projects-showcase/boids/index.html"></iframe>
+        <iframe scrolling="no" src="/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=300"></iframe>
       </div>
       <div class="resume-layout">
         <aside class="resume-sidebar">
