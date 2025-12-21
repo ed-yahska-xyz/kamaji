@@ -588,6 +588,13 @@ body {
     border-left: 4px solid var(--color-yellow);
 }
 
+@media screen and (max-width: 900px) {
+    .contributions-container {
+        width: 300px;
+        margin: 0 auto;
+    }
+}
+
 .contributions-title {
     color: var(--color-yellow);
     font-size: 0.85rem;
