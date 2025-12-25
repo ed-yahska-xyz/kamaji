@@ -1,5 +1,5 @@
 import { Glob, $ } from "bun";
-import { mkdir, cp } from "fs/promises";
+import { mkdir, cp, stat } from "fs/promises";
 import { dirname, join } from "path";
 
 // Build Zig WASM
@@ -40,8 +40,9 @@ for await (const file of assetGlob.scan(".")) {
   const destPath = join("public", file);
   const destDir = dirname(destPath);
 
-  await mkdir(destDir, { recursive: true });
-  await cp(file, destPath);
+  const dirExists = await stat(destDir).then(() => true).catch(() => false);
+  if (!dirExists) await mkdir(destDir, { recursive: true });
+  await cp(file, destPath, { force: true });
   copiedFiles.push(file);
 }
 
