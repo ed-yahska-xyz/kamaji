@@ -40,7 +40,40 @@ Personal website featuring professional bio and blog, built with Bun + HTMX.
 ## Tech Stack
 - Runtime: Bun
 - Frontend: HTMX + HTML + CSS
-- Server: Bun.serve()
+- Server: Hono (with Hono JSX for server-side rendering)
+
+## Build Process
+
+### Development
+```bash
+bun run dev    # Builds client + runs server with hot reload
+```
+
+### Production Build
+```bash
+bun run build  # Compiles everything for production
+bun run start  # Runs pre-compiled server
+```
+
+### What `bun run build` does:
+1. **Zig WASM** - Compiles `projects-showcase/boids/wasm` to WebAssembly
+2. **Client TypeScript** - Bundles `src/client/*.ts` to `public/js/`
+3. **Static Assets** - Copies HTML/JS/CSS/WASM from `projects-showcase/` to `public/`
+4. **Server TSX** - Pre-compiles `index.tsx` and all components/pages to `dist/index.js`
+
+### Output Structure
+```
+dist/
+  index.js       # Bundled server (all TSX pre-compiled to JS)
+public/
+  js/            # Client-side scripts
+  projects-showcase/  # Static project files
+```
+
+### Docker Deployment
+The server TSX is pre-compiled to avoid runtime JSX transformation issues:
+- Build: `bun run build`
+- Run: `bun run dist/index.js` (or `bun run start`)
 
 ## Design Notes
 - **Inspiration**: Cyberpunk 2077 official website aesthetic

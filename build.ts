@@ -52,3 +52,30 @@ if (copiedFiles.length > 0) {
     console.log(`  - ${file} → public/${file}`);
   }
 }
+
+// Build server-side TSX to JavaScript for production
+console.log("\nBuilding server-side TSX...");
+
+const serverResult = await Bun.build({
+  entrypoints: ["./index.tsx"],
+  outdir: "./dist",
+  target: "bun",
+  format: "esm",
+  minify: process.env.NODE_ENV === "production",
+  sourcemap: "none",
+  external: ["hono", "hono/*"],
+  naming: "[name].js",
+});
+
+if (!serverResult.success) {
+  console.error("Server build failed:");
+  for (const log of serverResult.logs) {
+    console.error(log);
+  }
+  process.exit(1);
+}
+
+console.log(`✓ Built server bundle to dist/`);
+for (const output of serverResult.outputs) {
+  console.log(`  - ${output.path}`);
+}
