@@ -8,7 +8,7 @@
     "postbuild": "bun run relative-pathing",
     "build:watch": "bun run build.ts --watch",
     "dev": "bun run build && bun run --watch index.tsx",
-    "start": "NODE_ENV=production bun run build && bun run index.tsx",
+    "start": "NODE_ENV=production bun run index.tsx",
     "relative-pathing": "./node_modules/relative-pathing/bin/relative-pathing --in ./public/projects-showcase --out ./public/projects-showcase --rules ./relative-pathing.json"
   },
   "devDependencies": {
