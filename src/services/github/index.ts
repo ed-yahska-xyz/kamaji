@@ -29,7 +29,7 @@ export async function getContributions(): Promise<any> {
     const response = await fetch(params.endpoint, {
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+            "Authorization": `Bearer ${process.env.CONTRIBUTIONS_PAT}`,
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ query })
