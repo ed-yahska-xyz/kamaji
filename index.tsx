@@ -4,8 +4,11 @@ import { Layout } from "./components/Layout.tsx";
 import { ContributionsView } from "./components/Contributions.tsx";
 import { HomePage } from "./pages/Home.tsx";
 import { BlogPage } from "./pages/Blog.tsx";
+import { CodePage } from "./pages/Code.tsx";
+import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
 import { getContributions } from "./src/services/github/index.ts";
+import { getProjects } from "./src/services/projects/index.ts";
 
 
 const app = new Hono();
@@ -38,6 +41,23 @@ app.get("/blog", (c) => {
   return c.html(
     <Layout title={`Blog - ${profile.name}`} profile={profile}>
       <BlogPage />
+    </Layout>
+  );
+});
+
+app.get("/code", (c) => {
+  const projects = getProjects();
+  return c.html(
+    <Layout title={`Code - ${profile.name}`} profile={profile}>
+      <CodePage projects={projects} />
+    </Layout>
+  );
+});
+
+app.get("/notes", (c) => {
+  return c.html(
+    <Layout title={`Notes - ${profile.name}`} profile={profile}>
+      <NotesPage />
     </Layout>
   );
 });

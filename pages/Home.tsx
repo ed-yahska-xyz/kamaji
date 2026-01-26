@@ -6,11 +6,17 @@ type HomePageProps = {
   profile: Profile;
 };
 
+const possibleRandomProjects = [
+  "/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=300",
+  "/projects-showcase/game-of-life/index.html"
+];
+
 export const HomePage: FC<HomePageProps> = ({ profile }) => {
+  const randomProjectIndex = Math.floor(Math.random() * possibleRandomProjects.length);
   return (
     <div id="home-container">
       <div class="showcase">
-        <iframe scrolling="no" src="/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=300"></iframe>
+        <iframe scrolling="no" src={possibleRandomProjects[randomProjectIndex]}></iframe>
       </div>
       <div class="resume-layout">
         <aside class="resume-sidebar">
