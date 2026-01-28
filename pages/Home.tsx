@@ -7,7 +7,7 @@ type HomePageProps = {
 };
 
 const possibleRandomProjects = [
-  "/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=300",
+  "/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=2000",
   "/projects-showcase/game-of-life/index.html"
 ];
 

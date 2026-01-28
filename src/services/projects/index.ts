@@ -7,7 +7,7 @@ export type Project = {
   path: string;
 };
 
-const PROJECTS_DIR = "./projects-showcase";
+const PROJECTS_DIR = "./public/projects-showcase";
 
 export function getProjects(): Project[] {
   const entries = readdirSync(PROJECTS_DIR);
