@@ -130,7 +130,7 @@ body {
     position: absolute;
     height: 100%;
     width: 100%;
-    filter: blur(4px);
+    filter: blur(2px);
 }
 
 .showcase iframe {
@@ -298,6 +298,7 @@ body {
     .resume-card {
         position: relative;
         top: 0;
+        background-color: #0000;
     }
 
     .resume-name {
@@ -306,6 +307,10 @@ body {
 
     .nav-links {
         gap: 1rem;
+    }
+
+    .showcase {
+        filter: blur(8px); 
     }
 }
 
@@ -325,6 +330,8 @@ body {
     .resume-skill {
         padding: 1rem;
     }
+
+
 }
 
 /* Animation for HTMX loading */
