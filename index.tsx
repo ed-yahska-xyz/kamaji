@@ -9,6 +9,7 @@ import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
 import { getContributions } from "./src/services/github/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
+import { services, errors } from "./src/services/linode-s3"
 
 
 const app = new Hono();
@@ -24,9 +25,6 @@ app.get("*.wasm", async (c) => {
   }
   return c.notFound();
 });
-
-// Serve static files
-app.use("/*", serveStatic({ root: "./public" }));
 
 // Routes
 app.get("/", (c) => {
@@ -55,12 +53,36 @@ app.get("/code", (c) => {
 });
 
 app.get("/notes", (c) => {
+  console.log("Notes root");
   return c.html(
     <Layout title={`Notes - ${profile.name}`} profile={profile}>
       <NotesPage />
     </Layout>
   );
 });
+
+app.get("/notes/*", (c) => {
+  const path = c.req.path.replace("/notes/", "");
+  console.log("Path ", path);
+  return c.html(
+    <Layout title={`Notes - ${profile.name}`} profile={profile}>
+      <NotesPage />
+    </Layout>
+  );
+});
+
+// app.get("/notes/*", async (c) => {
+//   try {
+//     const result = await services.getDirectoriesFromPath("/zig/arrays");
+//   } catch (e) {
+//     if (e instanceof errors.InvalidPath) {
+//       c.redirect("/not-found")
+//     }
+//   }
+//   return c.html(
+//     <div>Notes content</div>
+//   )
+// });
 
 // API Routes
 app.get("/api/blog-posts", (c) => {
@@ -105,6 +127,9 @@ app.get("/api/github-contributions", async (c) => {
     <ContributionsView weeks={contributionsJSON?.data?.viewer?.contributionsCollection?.contributionCalendar?.weeks}/>
   )
 });
+
+// Serve static files
+app.use("/*", serveStatic({ root: "./public" }));
 
 export default {
   port: 3000,
