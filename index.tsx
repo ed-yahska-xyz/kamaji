@@ -64,7 +64,7 @@ app.get("/notes/*", async (c) => {
   if (path.endsWith(".md")) {
     console.log("In markdown");
     const markdownContent = await getMarkdownContent(path);
-    const html = markdownToHtml(markdownContent);
+    const html = await markdownToHtml(markdownContent);
     return c.html(
       <Layout title={`Notes - ${profile.name}`} profile={profile}>
         <NotesPage html={html} />

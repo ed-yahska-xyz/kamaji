@@ -1,14 +1,28 @@
 import { getNoteFromS3 } from "./index";
 import { InvalidPath } from "./errors";
+import { getWorkerPool, WorkerPoolError } from "./worker-pool";
 
 /**
- * Convert markdown content to HTML
+ * Convert markdown content to HTML using the Zig worker pool
  * @param markdown - markdown content as string
- * @returns HTML string
+ * @returns Promise<string> HTML string
  */
-export function markdownToHtml(markdown: string): string {
-    // TODO: Implement actual markdown to HTML conversion
-    return "<div><h1>Dummy HTML</h1><p>Markdown content will be rendered here.</p></div>";
+export async function markdownToHtml(markdown: string): Promise<string> {
+    const pool = getWorkerPool();
+
+    try {
+        const html = await pool.render(markdown);
+        return html;
+    } catch (error) {
+        console.error("[markdown] Failed to convert markdown:", error);
+
+        // Return error message as HTML for graceful degradation
+        if (error instanceof WorkerPoolError) {
+            return `<div class="error"><h1>Markdown Rendering Error</h1><p>${error.message}</p></div>`;
+        }
+
+        throw error;
+    }
 }
 
 /**
