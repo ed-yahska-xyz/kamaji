@@ -724,6 +724,213 @@ body {
 /* Notes Page */
 .notes-page {
     min-height: calc(100vh - 200px);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    color: var(--color-black);
+    line-height: 1.8;
+}
+
+/* Notes Typography */
+.notes-page h1,
+.notes-page h2,
+.notes-page h3,
+.notes-page h4,
+.notes-page h5,
+.notes-page h6 {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+.notes-page h1 {
+    font-size: 2.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid var(--color-black);
+    margin-top: 0;
+}
+
+.notes-page h2 {
+    font-size: 1.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--color-dark-yellow);
+}
+
+.notes-page h3 {
+    font-size: 1.35rem;
+}
+
+.notes-page h4 {
+    font-size: 1.15rem;
+}
+
+.notes-page h5,
+.notes-page h6 {
+    font-size: 1rem;
+    text-transform: none;
+}
+
+.notes-page p {
+    margin-bottom: 1.25rem;
+}
+
+/* Notes Links */
+.notes-page a {
+    color: var(--color-olive);
+    text-decoration: none;
+    border-bottom: 2px solid var(--color-dark-yellow);
+    transition: all 0.2s ease;
+}
+
+.notes-page a:hover {
+    color: var(--color-black);
+    background: var(--color-yellow);
+    border-bottom-color: var(--color-black);
+}
+
+/* Notes Lists */
+.notes-page ul,
+.notes-page ol {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+}
+
+.notes-page li {
+    margin-bottom: 0.5rem;
+}
+
+.notes-page li::marker {
+    color: var(--color-olive);
+}
+
+.notes-page ul ul,
+.notes-page ol ol,
+.notes-page ul ol,
+.notes-page ol ul {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Notes Code */
+.notes-page code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    background: var(--color-dark-gray);
+    color: var(--color-cyan);
+    padding: 0.2em 0.4em;
+    border-radius: 2px;
+}
+
+.notes-page pre {
+    background: var(--color-dark-gray);
+    color: var(--color-white);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    border-left: 4px solid var(--color-cyan);
+}
+
+.notes-page pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+/* Notes Blockquote */
+.notes-page blockquote {
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background: rgba(252, 227, 0, 0.15);
+    border-left: 4px solid var(--color-yellow);
+    font-style: italic;
+}
+
+.notes-page blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Notes Tables */
+.notes-page table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.notes-page th,
+.notes-page td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border: 1px solid var(--color-dark-gray);
+}
+
+.notes-page th {
+    background: var(--color-dark-gray);
+    color: var(--color-white);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+}
+
+.notes-page tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* Notes Horizontal Rule */
+.notes-page hr {
+    border: none;
+    height: 2px;
+    background: var(--color-dark-yellow);
+    margin: 2rem 0;
+}
+
+/* Notes Images */
+.notes-page img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1.5rem auto;
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Notes Strong & Emphasis */
+.notes-page strong {
+    font-weight: 700;
+}
+
+.notes-page em {
+    font-style: italic;
+}
+
+/* Notes Task Lists */
+.notes-page input[type="checkbox"] {
+    margin-right: 0.5rem;
+    accent-color: var(--color-olive);
+}
+
+/* Notes Responsive */
+@media (max-width: 768px) {
+    .notes-page {
+        padding: 2rem 1rem;
+    }
+
+    .notes-page h1 {
+        font-size: 1.75rem;
+    }
+
+    .notes-page h2 {
+        font-size: 1.35rem;
+    }
+
+    .notes-page pre {
+        padding: 1rem;
+        font-size: 0.8rem;
+    }
 }
 
 .notes-empty {

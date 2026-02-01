@@ -5,11 +5,13 @@ import { ContributionsView } from "./components/Contributions.tsx";
 import { HomePage } from "./pages/Home.tsx";
 import { BlogPage } from "./pages/Blog.tsx";
 import { CodePage } from "./pages/Code.tsx";
+import { NotesExplorerPage } from "./pages/NotesExplorer.tsx";
 import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
 import { getContributions } from "./src/services/github/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
 import linodeS3 from "./src/services/linode-s3"
+import { getMarkdownContent, markdownToHtml } from "./src/services/linode-s3/markdown"
 const { services: s3Service, errors } = linodeS3;
 
 
@@ -57,11 +59,26 @@ app.get("/notes", (c) => c.redirect("/notes/"));
 
 app.get("/notes/*", async (c) => {
   const path = c.req.path.replace("/notes/", "") || "/";
+
+  // Handle markdown files
+  if (path.endsWith(".md")) {
+    console.log("In markdown");
+    const markdownContent = await getMarkdownContent(path);
+    const html = markdownToHtml(markdownContent);
+    return c.html(
+      <Layout title={`Notes - ${profile.name}`} profile={profile}>
+        <NotesPage html={html} />
+      </Layout>
+    );
+  }
+
+  // Handle directory listing
+  console.log("In notes explorer");
   try {
     const notes = await s3Service.getDirectoriesFromPath(path);
     return c.html(
       <Layout title={`Notes - ${profile.name}`} profile={profile}>
-        <NotesPage notes={notes} />
+        <NotesExplorerPage notes={notes} />
       </Layout>
     );
   } catch (e) {

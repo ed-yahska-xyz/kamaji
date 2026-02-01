@@ -3,6 +3,8 @@ import { InvalidPath } from "./errors";
 const CLUSTER_ID = process.env.LINODE_S3_CLUSTER_ID || "us-east-1";
 const BUCKET_NAME = process.env.LINODE_S3_BUCKET_NAME || "notes";
 
+console.log(`[s3] Initialized with cluster: ${CLUSTER_ID}, bucket: ${BUCKET_NAME}`);
+
 export interface S3Item {
     name: string;
     type: "directory" | "file";
@@ -45,8 +47,11 @@ export async function getNoteFromS3(path: string): Promise<string> {
         throw new InvalidPath("Input path is invalid");
     }
 
-    const token = process.env.LINODE_S3_READ_ONLY;
+    const token = process.env.LINODE_S3_READ_WRITE;
     const url = `https://api.linode.com/v4/object-storage/buckets/${CLUSTER_ID}/${BUCKET_NAME}/object-url`;
+
+    console.log(`[s3] Requesting signed URL for: ${path}`);
+    console.log(`[s3] API URL: ${url}`);
 
     const response = await fetch(url, {
         method: 'POST',
@@ -61,6 +66,9 @@ export async function getNoteFromS3(path: string): Promise<string> {
     });
 
     if (!response.ok) {
+        const errorBody = await response.text();
+        console.log(`[s3] Error response: ${response.status} ${response.statusText}`);
+        console.log(`[s3] Error body: ${errorBody}`);
         throw new Error(`Failed to get object URL: ${response.statusText}`);
     }
 
