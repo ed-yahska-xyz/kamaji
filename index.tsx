@@ -9,7 +9,8 @@ import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
 import { getContributions } from "./src/services/github/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
-import { services, errors } from "./src/services/linode-s3"
+import linodeS3 from "./src/services/linode-s3"
+const { services: s3Service, errors } = linodeS3;
 
 
 const app = new Hono();
@@ -52,23 +53,23 @@ app.get("/code", (c) => {
   );
 });
 
-app.get("/notes", (c) => {
-  console.log("Notes root");
-  return c.html(
-    <Layout title={`Notes - ${profile.name}`} profile={profile}>
-      <NotesPage />
-    </Layout>
-  );
-});
+app.get("/notes", (c) => c.redirect("/notes/"));
 
-app.get("/notes/*", (c) => {
-  const path = c.req.path.replace("/notes/", "");
-  console.log("Path ", path);
-  return c.html(
-    <Layout title={`Notes - ${profile.name}`} profile={profile}>
-      <NotesPage />
-    </Layout>
-  );
+app.get("/notes/*", async (c) => {
+  const path = c.req.path.replace("/notes/", "") || "/";
+  try {
+    const notes = await s3Service.getDirectoriesFromPath(path);
+    return c.html(
+      <Layout title={`Notes - ${profile.name}`} profile={profile}>
+        <NotesPage notes={notes} />
+      </Layout>
+    );
+  } catch (e) {
+    if (e instanceof errors.InvalidPath) {
+      return c.redirect("/not-found");
+    }
+    throw e;
+  }
 });
 
 // app.get("/notes/*", async (c) => {
