@@ -5,10 +5,14 @@ import { ContributionsView } from "./components/Contributions.tsx";
 import { HomePage } from "./pages/Home.tsx";
 import { BlogPage } from "./pages/Blog.tsx";
 import { CodePage } from "./pages/Code.tsx";
+import { NotesExplorerPage } from "./pages/NotesExplorer.tsx";
 import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
 import { getContributions } from "./src/services/github/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
+import linodeS3 from "./src/services/linode-s3"
+import { getMarkdownContent, markdownToHtml } from "./src/services/linode-s3/markdown"
+const { services: s3Service, errors } = linodeS3;
 
 
 const app = new Hono();
@@ -24,9 +28,6 @@ app.get("*.wasm", async (c) => {
   }
   return c.notFound();
 });
-
-// Serve static files
-app.use("/*", serveStatic({ root: "./public" }));
 
 // Routes
 app.get("/", (c) => {
@@ -54,13 +55,52 @@ app.get("/code", (c) => {
   );
 });
 
-app.get("/notes", (c) => {
-  return c.html(
-    <Layout title={`Notes - ${profile.name}`} profile={profile}>
-      <NotesPage />
-    </Layout>
-  );
+app.get("/notes", (c) => c.redirect("/notes/"));
+
+app.get("/notes/*", async (c) => {
+  const path = c.req.path.replace("/notes/", "") || "/";
+
+  // Handle markdown files
+  if (path.endsWith(".md")) {
+    console.log("In markdown");
+    const markdownContent = await getMarkdownContent(path);
+    const html = await markdownToHtml(markdownContent);
+    return c.html(
+      <Layout title={`Notes - ${profile.name}`} profile={profile}>
+        <NotesPage html={html} />
+      </Layout>
+    );
+  }
+
+  // Handle directory listing
+  console.log("In notes explorer");
+  try {
+    const notes = await s3Service.getDirectoriesFromPath(path);
+    return c.html(
+      <Layout title={`Notes - ${profile.name}`} profile={profile}>
+        <NotesExplorerPage notes={notes} />
+      </Layout>
+    );
+  } catch (e) {
+    if (e instanceof errors.InvalidPath) {
+      return c.redirect("/not-found");
+    }
+    throw e;
+  }
 });
+
+// app.get("/notes/*", async (c) => {
+//   try {
+//     const result = await services.getDirectoriesFromPath("/zig/arrays");
+//   } catch (e) {
+//     if (e instanceof errors.InvalidPath) {
+//       c.redirect("/not-found")
+//     }
+//   }
+//   return c.html(
+//     <div>Notes content</div>
+//   )
+// });
 
 // API Routes
 app.get("/api/blog-posts", (c) => {
@@ -105,6 +145,9 @@ app.get("/api/github-contributions", async (c) => {
     <ContributionsView weeks={contributionsJSON?.data?.viewer?.contributionsCollection?.contributionCalendar?.weeks}/>
   )
 });
+
+// Serve static files
+app.use("/*", serveStatic({ root: "./public" }));
 
 export default {
   port: 3000,
