@@ -1,7 +1,21 @@
 import { InvalidPath } from "./errors";
+import { readFileSync, existsSync } from "fs";
 
 const CLUSTER_ID = process.env.LINODE_S3_CLUSTER_ID || "us-east-1";
 const BUCKET_NAME = process.env.LINODE_S3_BUCKET_NAME || "notes";
+
+// Docker secrets paths
+const READ_WRITE_SECRET_PATH = "/run/secrets/linode_s3_read_write";
+const READ_ONLY_SECRET_PATH = "/run/secrets/linode_s3_read_only";
+
+// Read tokens from Docker secrets first, fallback to env vars
+const LINODE_S3_READ_WRITE = existsSync(READ_WRITE_SECRET_PATH)
+    ? readFileSync(READ_WRITE_SECRET_PATH, "utf8").trim()
+    : process.env.LINODE_S3_READ_WRITE;
+
+const LINODE_S3_READ_ONLY = existsSync(READ_ONLY_SECRET_PATH)
+    ? readFileSync(READ_ONLY_SECRET_PATH, "utf8").trim()
+    : process.env.LINODE_S3_READ_ONLY;
 
 console.log(`[s3] Initialized with cluster: ${CLUSTER_ID}, bucket: ${BUCKET_NAME}`);
 
@@ -47,7 +61,7 @@ export async function getNoteFromS3(path: string): Promise<string> {
         throw new InvalidPath("Input path is invalid");
     }
 
-    const token = process.env.LINODE_S3_READ_WRITE;
+    const token = LINODE_S3_READ_WRITE;
     const url = `https://api.linode.com/v4/object-storage/buckets/${CLUSTER_ID}/${BUCKET_NAME}/object-url`;
 
     console.log(`[s3] Requesting signed URL for: ${path}`);
@@ -83,7 +97,7 @@ export async function getNoteFromS3(path: string): Promise<string> {
  * @returns S3ListResult with items array containing directories and files
  */
 export async function getDirectoriesFromPath(path: string): Promise<S3ListResult> {
-    const token = process.env.LINODE_S3_READ_ONLY;
+    const token = LINODE_S3_READ_ONLY;
 
     // Normalize path: treat "/" or empty as root
     let prefix = path === "/" ? "" : path;
