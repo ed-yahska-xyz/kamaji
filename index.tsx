@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
+import { rateLimiter } from "hono-rate-limiter";
 import { Layout } from "./components/Layout.tsx";
 import { ContributionsView } from "./components/Contributions.tsx";
 import { HomePage } from "./pages/Home.tsx";
@@ -54,6 +55,16 @@ app.get("/code", (c) => {
     </Layout>
   );
 });
+
+// Global rate limiting for notes routes: 100 requests per hour (shared across all clients)
+const notesRateLimiter = rateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 100,
+  keyGenerator: () => "global", // Single key for all requests
+});
+
+app.use("/notes", notesRateLimiter);
+app.use("/notes/*", notesRateLimiter);
 
 app.get("/notes", (c) => c.redirect("/notes/"));
 
