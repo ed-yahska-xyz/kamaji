@@ -1,5 +1,7 @@
 # kamaji
 
+[Homepage](https://ed-yahska.xyz/)
+
 To install dependencies:
 
 ```bash
