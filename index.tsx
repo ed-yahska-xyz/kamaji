@@ -32,7 +32,7 @@ app.get("*.wasm", async (c) => {
 // Routes
 app.get("/", (c) => {
   return c.html(
-    <Layout title={`${profile.name} - Professional Portfolio`} profile={profile}>
+    <Layout title={`${profile.name} - Professional Portfolio`} profile={profile} currentPath="/">
       <HomePage profile={profile} />
     </Layout>
   );
