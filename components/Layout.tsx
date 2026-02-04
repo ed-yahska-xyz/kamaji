@@ -8,6 +8,12 @@ const ScrollEffects = () => html`
   </script>
 `;
 
+const ServiceWorkerRegister = () => html`
+  <script type="module">
+    import "/js/sw-register.js";
+  </script>
+`;
+
 type LayoutProps = PropsWithChildren<{
   title: string;
   profile: Profile;
@@ -49,6 +55,7 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, children 
           </div>
         </footer>
         <ScrollEffects />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

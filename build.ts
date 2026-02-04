@@ -79,3 +79,7 @@ console.log(`✓ Built server bundle to dist/`);
 for (const output of serverResult.outputs) {
   console.log(`  - ${output.path}`);
 }
+
+// Copy service worker to public
+await cp("workers/sw.js", "public/sw.js", { force: true });
+console.log("\n✓ Copied service worker to public/sw.js");
