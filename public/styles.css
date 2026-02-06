@@ -674,6 +674,7 @@ body {
 /* Code Page */
 .code-page {
     min-height: calc(100vh - 200px);
+    padding: 1rem;
 }
 
 .projects-grid {
