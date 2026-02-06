@@ -14,10 +14,6 @@ export const NotesExplorerPage: FC<NotesExplorerPageProps> = ({ notes }) => {
     <div class="notes-page">
       <header class="page-header">
         <h1 class="page-title">Notes</h1>
-        <p class="page-subtitle">Thoughts, learnings, and observations</p>
-        {normalizedPath && (
-          <p class="page-breadcrumb">{normalizedPath}</p>
-        )}
       </header>
       {hasItems ? (
         <div class="projects-grid">
@@ -31,7 +27,6 @@ export const NotesExplorerPage: FC<NotesExplorerPageProps> = ({ notes }) => {
                   {item.type === "directory" ? "📁" : "📄"}
                 </span>
                 <h2 class="project-card-title">{item.name}</h2>
-                <span class="project-card-arrow">&rarr;</span>
               </div>
             </a>
           ))}
