@@ -8,10 +8,6 @@ type CodePageProps = {
 export const CodePage: FC<CodePageProps> = ({ projects }) => {
   return (
     <div class="code-page">
-      <header class="page-header">
-        <h1 class="page-title">Code</h1>
-        <p class="page-subtitle">Interactive projects and experiments</p>
-      </header>
       <div class="projects-grid">
         {projects.map((project) => (
           <a href={project.path} class="project-card">
