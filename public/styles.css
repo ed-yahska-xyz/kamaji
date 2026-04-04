@@ -674,6 +674,12 @@ body {
 .code-page {
     min-height: calc(100vh - 200px);
     padding: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.code-page a {
+    border-bottom: 2px solid var(--color-dark-yellow);
 }
 
 .projects-grid {
@@ -740,6 +746,61 @@ body {
 
 .project-card:hover .project-card-arrow {
     transform: translateY(4px);
+}
+
+/* List View */
+.list-view {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 600px;
+}
+
+.list-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-item-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 0.5rem;
+    text-decoration: none;
+    color: var(--color-black);
+    transition: background 0.2s ease;
+}
+
+.list-item-link:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.list-item-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.list-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.list-item-arrow {
+    margin-left: auto;
+    font-size: 1rem;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.list-item-link:hover .list-item-arrow {
+    opacity: 1;
+    transform: translateX(4px);
 }
 
 /* Notes Page */
