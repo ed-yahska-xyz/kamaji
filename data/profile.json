@@ -5,11 +5,11 @@
   "birthdate": "July 1, 1991",
   "education": [
     {
-      "degree": "Masters of Computer Science",
+      "degree": "M.S. Computer Science",
       "university": "Oregon State University"
     },
     {
-      "degree": "Bachelor of Engineering",
+      "degree": "B.E. in Computer Engineering",
       "university": "Mumbai University"
     }
   ],
