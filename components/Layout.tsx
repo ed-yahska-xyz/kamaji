@@ -18,9 +18,10 @@ type LayoutProps = PropsWithChildren<{
   title: string;
   profile: Profile;
   currentPath?: string;
+  pageSubtitle?: string;
 }>;
 
-export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, children }) => {
+export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubtitle, children }) => {
   return (
     <html lang="en">
       <head>
@@ -34,13 +35,20 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, children 
         <nav class="navbar">
           <div class="container">
             <div class="nav-brand">
-              <h1 class="navbar-title-hidden">Akshay Shinde</h1>
-              <div class="subtitle navbar-subtitle-shifted">Engineering with Purpose, Creativity & a Lot of Fun</div>
+              <h1 class={currentPath === "/" ? "navbar-title-hidden" : ""}>
+                {currentPath === "/code" ? "Code"
+                  : currentPath === "/notes" ? "Notes"
+                  : currentPath === "/blog" ? "Blog"
+                  : "Akshay Shinde"}
+              </h1>
+              <div class={currentPath === "/" ? "subtitle navbar-subtitle-shifted" : "subtitle"}>
+                {pageSubtitle || "Engineering with Purpose, Creativity & a Lot of Fun"}
+              </div>
             </div>
             <div class="nav-links">
               {currentPath !== "/" && <a href="/" class="nav-link">Home</a>}
-              <a href="/code" class="nav-link">Code</a>
-              <a href="/notes" class="nav-link">Notes</a>
+              {currentPath !== "/code" && <a href="/code" class="nav-link">Code</a>}
+              {currentPath !== "/notes" && <a href="/notes" class="nav-link">Notes</a>}
             </div>
           </div>
         </nav>

@@ -41,7 +41,7 @@ app.get("/", (c) => {
 
 app.get("/blog", (c) => {
   return c.html(
-    <Layout title={`Blog - ${profile.name}`} profile={profile}>
+    <Layout title={`Blog - ${profile.name}`} profile={profile} currentPath="/blog">
       <BlogPage />
     </Layout>
   );
@@ -50,7 +50,7 @@ app.get("/blog", (c) => {
 app.get("/code", (c) => {
   const projects = getProjects();
   return c.html(
-    <Layout title={`Code - ${profile.name}`} profile={profile}>
+    <Layout title={`Code - ${profile.name}`} profile={profile} currentPath="/code" pageSubtitle="Interactive projects and experiments">
       <CodePage projects={projects} />
     </Layout>
   );
@@ -77,7 +77,7 @@ app.get("/notes/*", async (c) => {
     const markdownContent = await getMarkdownContent(path);
     const html = await markdownToHtml(markdownContent);
     return c.html(
-      <Layout title={`Notes - ${profile.name}`} profile={profile}>
+      <Layout title={`Notes - ${profile.name}`} profile={profile} currentPath="/notes" pageSubtitle="Notes from the lab">
         <NotesPage html={html} />
       </Layout>
     );
@@ -88,7 +88,7 @@ app.get("/notes/*", async (c) => {
   try {
     const notes = await s3Service.getDirectoriesFromPath(path);
     return c.html(
-      <Layout title={`Notes - ${profile.name}`} profile={profile}>
+      <Layout title={`Notes - ${profile.name}`} profile={profile} currentPath="/notes" pageSubtitle="Notes from the lab">
         <NotesExplorerPage notes={notes} />
       </Layout>
     );

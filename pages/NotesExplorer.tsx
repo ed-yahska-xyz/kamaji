@@ -12,9 +12,6 @@ export const NotesExplorerPage: FC<NotesExplorerPageProps> = ({ notes }) => {
 
   return (
     <div class="notes-page">
-      <header class="page-header">
-        <h1 class="page-title">Notes</h1>
-      </header>
       {hasItems ? (
         <div class="projects-grid">
           {notes.items.map((item) => (
