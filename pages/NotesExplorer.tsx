@@ -13,21 +13,22 @@ export const NotesExplorerPage: FC<NotesExplorerPageProps> = ({ notes }) => {
   return (
     <div class="notes-page">
       {hasItems ? (
-        <div class="projects-grid">
+        <ul class="list-view">
           {notes.items.map((item) => (
-            <a
-              href={`/notes/${normalizedPath ? normalizedPath + "/" : ""}${item.name}`}
-              class="project-card"
-            >
-              <div class="project-card-content">
-                <span class="project-card-icon">
+            <li class="list-item">
+              <a
+                href={`/notes/${normalizedPath ? normalizedPath + "/" : ""}${item.name}`}
+                class="list-item-link"
+              >
+                <span class="list-item-icon">
                   {item.type === "directory" ? "📁" : "📄"}
                 </span>
-                <h2 class="project-card-title">{item.name}</h2>
-              </div>
-            </a>
+                <span class="list-item-title">{item.name}</span>
+                <span class="list-item-arrow">&rarr;</span>
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
         <div class="notes-empty">
           <h3>No notes yet</h3>
