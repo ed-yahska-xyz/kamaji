@@ -1,5 +1,6 @@
 {
   "name": "kamaji",
+  "version": "0.1.0",
   "module": "index.tsx",
   "type": "module",
   "private": true,
@@ -10,9 +11,14 @@
     "dev": "bun run build && bun run --watch index.tsx",
     "start": "NODE_ENV=production bun run dist/index.js",
     "test": "bun test",
-    "relative-pathing": "./node_modules/relative-pathing/bin/relative-pathing --in ./public/projects-showcase --out ./public/projects-showcase --rules ./relative-pathing.json"
+    "relative-pathing": "./node_modules/relative-pathing/bin/relative-pathing --in ./public/projects-showcase --out ./public/projects-showcase --rules ./relative-pathing.json",
+    "changeset": "bunx changeset",
+    "version": "bunx changeset version",
+    "release": "bun run build && bunx changeset tag"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.30.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {
