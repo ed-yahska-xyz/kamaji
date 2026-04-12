@@ -1,0 +1,53 @@
+name: Changeset Check
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  changeset-check:
+    name: Check for changesets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Check for changesets
+        run: |
+          # Get list of changeset files added in this PR
+          CHANGESETS=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
+
+          if [ -z "$CHANGESETS" ]; then
+            echo "::warning::No changeset found. If this PR includes user-facing changes, run \`bun run changeset\` to add one."
+            echo ""
+            echo "## ⚠️ No Changeset Found" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "This PR does not include a changeset. If it includes user-facing changes, please run:" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```sh' >> "$GITHUB_STEP_SUMMARY"
+            echo "bun run changeset" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "If this change doesn't need a release, you can skip this by adding an empty changeset:" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```sh' >> "$GITHUB_STEP_SUMMARY"
+            echo "bun run changeset -- --empty" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Changesets found:"
+            echo "$CHANGESETS"
+            echo "## ✅ Changeset Found" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "The following changesets are included:" >> "$GITHUB_STEP_SUMMARY"
+            echo "$CHANGESETS" | while read -r f; do echo "- \`$f\`" >> "$GITHUB_STEP_SUMMARY"; done
+          fi
