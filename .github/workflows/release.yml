@@ -18,7 +18,7 @@ jobs:
       pull-requests: write
       packages: write
     outputs:
-      published: ${{ steps.changesets.outputs.published }}
+      published: ${{ steps.changesets.outputs.hasChangesets == 'false' && steps.version-check.outputs.changed == 'true' }}
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v5
@@ -42,11 +42,25 @@ jobs:
 
       - name: Get version
         id: version
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.changesets.outputs.hasChangesets == 'false'
         run: echo "version=$(jq -r '.version' package.json)" >> "$GITHUB_OUTPUT"
 
+      - name: Check if version changed
+        id: version-check
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: |
+          CURRENT="v${{ steps.version.outputs.version }}"
+          LATEST=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "none")
+          if [ "$CURRENT" != "$LATEST" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub Release
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.changesets.outputs.hasChangesets == 'false' && steps.version-check.outputs.changed == 'true'
         run: |
           gh release create "v${{ steps.version.outputs.version }}" \
             --title "v${{ steps.version.outputs.version }}" \
