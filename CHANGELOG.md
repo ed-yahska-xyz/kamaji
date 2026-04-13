@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.2.1
+
+### Patch Changes
+
+- [#26](https://github.com/ed-yahska-xyz/kamaji/pull/26) [`bc54d12`](https://github.com/ed-yahska-xyz/kamaji/commit/bc54d125250318591af9344432e1507a2caf4fd6) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Add Open Graph and Twitter Card meta tags to Layout for social media sharing previews. Home page uses og:type profile with structured profile metadata and link rel="me" for external profiles (LinkedIn).
+
 ## 0.2.0
 
 ### Minor Changes
