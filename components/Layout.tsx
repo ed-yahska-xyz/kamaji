@@ -14,20 +14,55 @@ const ServiceWorkerRegister = () => html`
   </script>
 `;
 
+type MetaProps = {
+  description: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  ogUrl?: string;
+  ogType?: string;
+  twitterCard?: string;
+  profile?: {
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+  };
+  seeAlso?: string[];
+};
+
 type LayoutProps = PropsWithChildren<{
   title: string;
   profile: Profile;
   currentPath?: string;
   pageSubtitle?: string;
+  meta?: MetaProps;
 }>;
 
-export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubtitle, children }) => {
+export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubtitle, meta, children }) => {
   return (
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
+        {meta && (
+          <>
+            <meta name="description" content={meta.description} />
+            <meta property="og:title" content={meta.ogTitle || title} />
+            <meta property="og:description" content={meta.ogDescription || meta.description} />
+            <meta property="og:type" content={meta.ogType || "website"} />
+            {meta.ogUrl && <meta property="og:url" content={meta.ogUrl} />}
+            {meta.ogImage && <meta property="og:image" content={meta.ogImage} />}
+            <meta name="twitter:card" content={meta.twitterCard || "summary"} />
+            <meta name="twitter:title" content={meta.ogTitle || title} />
+            <meta name="twitter:description" content={meta.ogDescription || meta.description} />
+            {meta.ogImage && <meta name="twitter:image" content={meta.ogImage} />}
+            {meta.profile?.firstName && <meta property="profile:first_name" content={meta.profile.firstName} />}
+            {meta.profile?.lastName && <meta property="profile:last_name" content={meta.profile.lastName} />}
+            {meta.profile?.username && <meta property="profile:username" content={meta.profile.username} />}
+            {meta.seeAlso?.map((url) => <link rel="me" href={url} />)}
+          </>
+        )}
         <link rel="stylesheet" href="/styles.css" />
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
       </head>
