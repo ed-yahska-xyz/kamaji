@@ -25,11 +25,23 @@ jobs:
 
       - run: bun install
 
-      - name: Create Release Pull Request
+      - name: Create Release Pull Request or Tag & Release
+        id: changesets
         uses: changesets/action@v1
         with:
           version: bun run version
+          publish: bun run release
           commit: "chore: version packages"
           title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
