@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.2.2
+
+### Patch Changes
+
+- [#28](https://github.com/ed-yahska-xyz/kamaji/pull/28) [`19b0bd3`](https://github.com/ed-yahska-xyz/kamaji/commit/19b0bd3f205502b3ee839dbe6ec3045f3de2deca) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Fix container build always being skipped on release. Use hasChangesets output instead of published (which is never true for private packages), with a version-changed guard to prevent false triggers on PRs without changesets.
+
 ## 0.2.1
 
 ### Patch Changes
