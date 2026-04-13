@@ -33,7 +33,21 @@ app.get("*.wasm", async (c) => {
 // Routes
 app.get("/", (c) => {
   return c.html(
-    <Layout title={`${profile.name} - Professional Portfolio`} profile={profile} currentPath="/">
+    <Layout
+      title={`${profile.name} - Professional Portfolio`}
+      profile={profile}
+      currentPath="/"
+      meta={{
+        description: "Akshay Shinde — Software Engineer at eBay. MS Computer Science, Oregon State. Exploring frontend development, AI, computer graphics, and software engineering.",
+        ogType: "profile",
+        profile: {
+          firstName: "Akshay",
+          lastName: "Shinde",
+          username: "EdnihsYahska",
+        },
+        seeAlso: ["https://www.linkedin.com/in/ednihs-yahska"],
+      }}
+    >
       <HomePage profile={profile} />
     </Layout>
   );
