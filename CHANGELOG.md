@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.2.3
+
+### Patch Changes
+
+- [#30](https://github.com/ed-yahska-xyz/kamaji/pull/30) [`61ba383`](https://github.com/ed-yahska-xyz/kamaji/commit/61ba383795b0ef34d996ff1774233e9e7156f669) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Fix container build failing with "no such file or directory" for kamaji/Dockerfile. The sparse-checkout was using cone mode (default), which only accepts directory paths. Changed to checkout the whole kamaji directory from the virtuals repo.
+
 ## 0.2.2
 
 ### Patch Changes
