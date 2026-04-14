@@ -81,7 +81,7 @@ jobs:
         with:
           repository: ed-yahska-xyz/virtuals
           token: ${{ secrets.VIRTUALS_PAT }}
-          sparse-checkout: kamaji/Dockerfile
+          sparse-checkout: kamaji
 
       - uses: docker/login-action@v3
         with:
