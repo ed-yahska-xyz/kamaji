@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.2.4
+
+### Patch Changes
+
+- [#32](https://github.com/ed-yahska-xyz/kamaji/pull/32) [`6c1d523`](https://github.com/ed-yahska-xyz/kamaji/commit/6c1d523e6f71adecc1c5638b29cea1cc3cd9db6c) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Fix container build failing to find Dockerfile. Without an explicit context, docker/build-push-action was using the GitHub git context of the triggering repo instead of the local working directory where the virtuals repo was checked out. Added context: . to use the checked-out sparse-checkout.
+
 ## 0.2.3
 
 ### Patch Changes
