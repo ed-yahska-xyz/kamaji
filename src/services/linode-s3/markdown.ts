@@ -2,6 +2,64 @@ import { getNoteFromS3 } from "./index";
 import { InvalidPath } from "./errors";
 import { getWorkerPool, WorkerPoolError } from "./worker-pool";
 
+export interface TocEntry {
+    id: string;
+    text: string;
+    level: 2 | 3;
+}
+
+function slugify(text: string): string {
+    return text
+        .toLowerCase()
+        .replace(/<[^>]+>/g, "")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-");
+}
+
+function stripTags(html: string): string {
+    return html.replace(/<[^>]+>/g, "");
+}
+
+function extractIdAttr(attrs: string): string | null {
+    const m = attrs.match(/\bid\s*=\s*"([^"]+)"/i);
+    return m ? m[1]! : null;
+}
+
+/**
+ * Walk rendered HTML, inject `id` attributes on h2/h3 headings (when missing),
+ * and collect a table of contents for sidebar rendering.
+ */
+export function extractToc(html: string): { html: string; toc: TocEntry[] } {
+    const toc: TocEntry[] = [];
+    const seen = new Map<string, number>();
+
+    const newHtml = html.replace(
+        /<h([23])([^>]*)>([\s\S]*?)<\/h\1>/g,
+        (_match, levelStr: string, rawAttrs: string, inner: string) => {
+            const level = Number(levelStr) as 2 | 3;
+            const text = stripTags(inner).trim();
+            if (!text) return _match;
+
+            let id = extractIdAttr(rawAttrs);
+            let attrs = rawAttrs;
+
+            if (!id) {
+                const base = slugify(text) || `section-${toc.length + 1}`;
+                const n = seen.get(base) ?? 0;
+                seen.set(base, n + 1);
+                id = n === 0 ? base : `${base}-${n}`;
+                attrs = `${rawAttrs} id="${id}"`;
+            }
+
+            toc.push({ id, text, level });
+            return `<h${level}${attrs}>${inner}</h${level}>`;
+        }
+    );
+
+    return { html: newHtml, toc };
+}
+
 /**
  * Convert markdown content to HTML using the Zig worker pool
  * @param markdown - markdown content as string
