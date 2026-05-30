@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.3.0
+
+### Minor Changes
+
+- [#35](https://github.com/ed-yahska-xyz/kamaji/pull/35) [`2242cde`](https://github.com/ed-yahska-xyz/kamaji/commit/2242cde76aafc005312bbe06d5e0fec58b647bc6) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Add manually-triggered deploy workflow. SSHes into the Linode host, pulls the selected GHCR image tag, and runs docker compose up to swap the running container. Supports deploying any published release version (default: latest) via workflow_dispatch input for easy rollback.
+
 ## 0.2.4
 
 ### Patch Changes
