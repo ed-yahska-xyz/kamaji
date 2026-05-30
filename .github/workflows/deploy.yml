@@ -29,18 +29,28 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: SSH and redeploy
         uses: appleboy/ssh-action@v1
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_VERSION: ${{ inputs.version }}
         with:
           host: ${{ secrets.LINODE_HOST }}
           username: ${{ secrets.LINODE_USER }}
           key: ${{ secrets.LINODE_SSH_KEY }}
+          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_VERSION
           script: |
             set -euo pipefail
             cd "${{ secrets.LINODE_DEPLOY_PATH }}"
             git pull origin main
-            export KAMAJI_VERSION="${{ inputs.version }}"
+            export KAMAJI_VERSION="$DEPLOY_VERSION"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
             docker compose pull kamaji
             docker compose up -d kamaji
             docker compose ps
