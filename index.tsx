@@ -12,7 +12,7 @@ import profile from "./data/profile.json";
 import { getContributions } from "./src/services/github/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
 import linodeS3 from "./src/services/linode-s3"
-import { getMarkdownContent, markdownToHtml } from "./src/services/linode-s3/markdown"
+import { getMarkdownContent, markdownToHtml, extractToc } from "./src/services/linode-s3/markdown"
 const { services: s3Service, errors } = linodeS3;
 
 
@@ -88,11 +88,32 @@ app.get("/notes/*", async (c) => {
   // Handle markdown files
   if (path.endsWith(".md")) {
     console.log("In markdown");
-    const markdownContent = await getMarkdownContent(path);
-    const html = await markdownToHtml(markdownContent);
+    const parentPath = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+
+    const safeList = (p: string) =>
+      s3Service.getDirectoriesFromPath(p || "/").catch((err) => {
+        console.error(`[notes] sidebar listing failed for "${p}":`, err);
+        return { items: [], path: p } as Awaited<ReturnType<typeof s3Service.getDirectoriesFromPath>>;
+      });
+
+    const [markdownContent, siblingsResult, topLevelResult] = await Promise.all([
+      getMarkdownContent(path),
+      parentPath ? safeList(parentPath) : Promise.resolve({ items: [], path: "" }),
+      safeList("/"),
+    ]);
+
+    const rawHtml = await markdownToHtml(markdownContent);
+    const { html, toc } = extractToc(rawHtml);
+
     return c.html(
       <Layout title={`Notes - ${profile.name}`} profile={profile} currentPath="/notes" pageSubtitle="Notes from the lab">
-        <NotesPage html={html} />
+        <NotesPage
+          html={html}
+          path={path}
+          siblings={siblingsResult.items}
+          topLevel={topLevelResult.items}
+          toc={toc}
+        />
       </Layout>
     );
   }
