@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.4.0
+
+### Minor Changes
+
+- [#39](https://github.com/ed-yahska-xyz/kamaji/pull/39) [`36d5f9b`](https://github.com/ed-yahska-xyz/kamaji/commit/36d5f9b08b24a8f55bf4d473ad3e70c37b32d212) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Redesign the Notes section as a three-pane docs view: a left-hand explorer listing all notes, a center reading pane, and a right-hand table-of-contents generated from the rendered markdown headings.
+
 ## 0.3.0
 
 ### Minor Changes
