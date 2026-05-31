@@ -8,10 +8,10 @@ type HomePageProps = {
 
 const possibleRandomProjects = [
   {
-    src: "/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=2000",
+    src: "/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=500",
     label: "Boids · Live",
-    caption: "2000 agents, Reynolds flocking — written in Zig.",
-    title: "Boids simulation — 2000 agents, written in Zig",
+    caption: "500 agents, Reynolds flocking — written in Zig.",
+    title: "Boids simulation — 500 agents, written in Zig",
   },
   {
     src: "/projects-showcase/game-of-life/index.html",
