@@ -2,12 +2,6 @@ import type { FC, PropsWithChildren } from "hono/jsx";
 import { html } from "hono/html";
 import type { Profile } from "../data/types.ts";
 
-const ScrollEffects = () => html`
-  <script type="module">
-    import "/js/scroll-effects.js";
-  </script>
-`;
-
 const ServiceWorkerRegister = () => html`
   <script type="module">
     import "/js/sw-register.js";
@@ -71,13 +65,7 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubti
         <nav class="navbar">
           <div class="container">
             <div class="nav-brand">
-              <h1 class={currentPath === "/" ? "navbar-title-hidden" : ""}>
-                {currentPath === "/code" ? "Code"
-                  : currentPath === "/notes" ? "Notes"
-                  : currentPath === "/blog" ? "Blog"
-                  : "Akshay Shinde"}
-              </h1>
-              <div class={currentPath === "/" ? "subtitle navbar-subtitle-shifted" : "subtitle"}>
+              <div class="subtitle">
                 {pageSubtitle || "Engineering with Purpose, Creativity & a Lot of Fun"}
               </div>
             </div>
@@ -98,7 +86,6 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubti
             <p>&copy; {profile.footer.copyright}. {profile.footer.tagline}</p>
           </div>
         </footer>
-        <ScrollEffects />
         <ServiceWorkerRegister />
       </body>
     </html>
