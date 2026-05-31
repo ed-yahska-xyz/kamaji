@@ -19,8 +19,10 @@ export const Navigation: FC<Props> = ({ profile, currentPath, pageSubtitle }) =>
   const showHomeButton = currentPath !== "/";
   return (
     <>
-      <TitlePill profile={profile} currentPath={currentPath} pageSubtitle={pageSubtitle} />
-      {showHomeButton && <FloatingHomeButton />}
+      <div class="nav-pill-cluster">
+        <TitlePill profile={profile} currentPath={currentPath} pageSubtitle={pageSubtitle} />
+        {showHomeButton && <FloatingHomeButton />}
+      </div>
       <FloatingHamburger />
       <NavMenu currentPath={currentPath} />
       <TabBar currentPath={currentPath} />

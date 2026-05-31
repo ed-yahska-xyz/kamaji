@@ -43,16 +43,25 @@ body {
     --tabbar-height: 64px;
 }
 
-/* Title pill — floats top-left, cyan bg */
-.title-pill {
+/* Left cluster — fixed top-left, holds the title pill and (on non-home
+   pages) a small Home pill beside it. */
+.nav-pill-cluster {
     position: fixed;
     top: var(--nav-edge);
     left: var(--nav-edge);
     z-index: 60;
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+    max-width: calc(100% - (2 * var(--nav-edge)) - var(--hamburger-size) - 0.75rem);
+    min-width: 0;
+}
+
+/* Title pill — cyan-bg rounded pill, lives inside .nav-pill-cluster. */
+.title-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    max-width: calc(100% - (2 * var(--nav-edge)) - var(--hamburger-size) - 0.75rem);
     padding: 0.45rem 0.95rem;
     background: var(--color-cyan);
     color: var(--color-black);
@@ -65,12 +74,8 @@ body {
     line-height: 1.15;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* When the home button is also floating top-right, the pill makes room
-   for both buttons + the gap between them. */
-body:has(.floating-home) .title-pill {
-    max-width: calc(100% - (2 * var(--nav-edge)) - (2 * var(--hamburger-size)) - 1.25rem);
+    min-width: 0;
+    overflow: hidden;
 }
 
 a.title-pill:hover {
@@ -107,11 +112,11 @@ a.title-pill:hover {
     }
 }
 
-/* Floating action buttons — top-right; tablet/desktop only */
-.floating-hamburger,
-.floating-home {
+/* Floating hamburger — top-right black square; tablet/desktop only */
+.floating-hamburger {
     position: fixed;
     top: var(--nav-edge);
+    right: var(--nav-edge);
     z-index: 60;
     width: var(--hamburger-size);
     height: var(--hamburger-size);
@@ -125,24 +130,42 @@ a.title-pill:hover {
     cursor: pointer;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
-    text-decoration: none;
 }
 
-.floating-hamburger {
-    right: var(--nav-edge);
+.floating-hamburger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
 }
 
+.floating-hamburger:focus-visible {
+    outline: 3px solid var(--color-yellow);
+    outline-offset: 3px;
+}
+
+/* Home pill — sits in .nav-pill-cluster, right of the title pill.
+   Cyan background, same height as the title pill, square-ish with
+   pill rounding so it reads as a small companion. Tablet/desktop only. */
 .floating-home {
-    right: calc(var(--nav-edge) + var(--hamburger-size) + 0.5rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 2.6rem;
+    background: var(--color-cyan);
+    color: var(--color-black);
+    border: 2px solid var(--color-black);
+    border-radius: var(--pill-radius);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.floating-hamburger:hover,
 .floating-home:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
 }
 
-.floating-hamburger:focus-visible,
 .floating-home:focus-visible {
     outline: 3px solid var(--color-yellow);
     outline-offset: 3px;
