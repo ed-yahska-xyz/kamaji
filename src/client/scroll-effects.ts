@@ -4,7 +4,7 @@ const init = () => {
   const navbar = document.querySelector(".navbar");
   const navbarTitle = document.querySelector(".nav-brand h1");
   const navbarSubtitle = document.querySelector(".nav-brand div.subtitle");
-  const heroSection = document.querySelector(".resume-header");
+  const heroSection = document.querySelector(".home-bio") || document.querySelector(".resume-header");
 
   if (!navbarTitle || !heroSection) return;
 
