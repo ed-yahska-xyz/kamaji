@@ -6,14 +6,7 @@ const params = {
     endpoint: "https://api.github.com/graphql",
 }
 
-const CACHE_TTL_MS = 10 * 60 * 1000;
-let cache: { data: any; expiresAt: number } | null = null;
-
 export async function getContributions(): Promise<any> {
-    if (cache && cache.expiresAt > Date.now()) {
-        return cache.data;
-    }
-
     const query = `
         query {
             viewer {
@@ -50,9 +43,5 @@ export async function getContributions(): Promise<any> {
         console.error("Error: ", response.statusText);
     }
 
-    const data = await response.json();
-    if (response.ok) {
-        cache = { data, expiresAt: Date.now() + CACHE_TTL_MS };
-    }
-    return data;
+    return response.json();
 }
