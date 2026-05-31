@@ -140,19 +140,6 @@ app.get("/notes/*", async (c) => {
   }
 });
 
-// app.get("/notes/*", async (c) => {
-//   try {
-//     const result = await services.getDirectoriesFromPath("/zig/arrays");
-//   } catch (e) {
-//     if (e instanceof errors.InvalidPath) {
-//       c.redirect("/not-found")
-//     }
-//   }
-//   return c.html(
-//     <div>Notes content</div>
-//   )
-// });
-
 // API Routes
 app.get("/api/blog-posts", (c) => {
   return c.json({
