@@ -75,6 +75,12 @@ The server TSX is pre-compiled to avoid runtime JSX transformation issues:
 - Build: `bun run build`
 - Run: `bun run dist/index.js` (or `bun run start`)
 
+### Dev vs production — perf testing
+
+- `bun run dev` rebuilds and runs `bun --watch index.tsx`. TSX is re-evaluated per request and the watcher adds restart overhead — fine for iteration, **not** representative of production latency.
+- `bun run start` runs the pre-bundled `dist/index.js` with `NODE_ENV=production`. Use this for any latency measurement.
+- When debugging a slow request in dev, watch the terminal — the Hono request logger (gated on `NODE_ENV !== "production"`) prints method/path/status/duration per request. Production stays silent.
+
 ## Design Notes
 - **Inspiration**: Cyberpunk 2077 official website aesthetic
 - **Key Features**:
