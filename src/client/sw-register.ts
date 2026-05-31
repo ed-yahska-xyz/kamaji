@@ -16,6 +16,12 @@ if ('serviceWorker' in navigator) {
           });
         }
       });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          registration.update().catch(() => {});
+        }
+      });
     } catch (error) {
       console.error('[SW] Registration failed:', error);
     }

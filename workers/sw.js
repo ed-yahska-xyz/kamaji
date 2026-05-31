@@ -1,4 +1,13 @@
-const CACHE_NAME = 'notes-cache-v1';
+// Caching strategy
+// - This worker only intercepts /notes/* (network-first with 24h TTL).
+// - The home page and all other routes go straight to the network.
+// - Bump CACHE_NAME on any release that changes cached assets so old
+//   caches are evicted on activate.
+// - sw-register.ts calls registration.update() on visibilitychange,
+//   so returning tabs pick up new SW versions without a hard reload.
+
+const BUILD_ID = 'v2'; // Bump on every release that changes cached assets
+const CACHE_NAME = `notes-cache-${BUILD_ID}`;
 const NOTES_CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
 // Routes to cache
