@@ -18,13 +18,18 @@ const { services: s3Service, errors } = linodeS3;
 
 const app = new Hono();
 
-// Explicitly serve WASM files with correct content type
+// Explicitly serve WASM files with correct content type.
+// Cache-Control is set here directly because this handler returns its own
+// Response and short-circuits the static-cache middleware below.
 app.get("*.wasm", async (c) => {
   const path = `./public${c.req.path}`;
   const file = Bun.file(path);
   if (await file.exists()) {
     return new Response(file, {
-      headers: { "Content-Type": "application/wasm" }
+      headers: {
+        "Content-Type": "application/wasm",
+        "Cache-Control": "public, max-age=86400, must-revalidate",
+      }
     });
   }
   return c.notFound();
@@ -190,6 +195,24 @@ app.get("/api/github-contributions", async (c) => {
   return c.html(
     <ContributionsView weeks={contributionsJSON?.data?.viewer?.contributionsCollection?.contributionCalendar?.weeks}/>
   )
+});
+
+// Static cache headers. Filenames aren't content-hashed, so we use
+// must-revalidate rather than immutable — switch to immutable if/when
+// we add hashing. The *.wasm route above sets its own Cache-Control,
+// so this middleware doesn't need to handle wasm.
+app.use("/*", async (c, next) => {
+  await next();
+  const p = c.req.path;
+  if (p === "/sw.js") {
+    c.header("Cache-Control", "no-cache");
+  } else if (p === "/styles.css" || p.startsWith("/js/")) {
+    c.header("Cache-Control", "public, max-age=3600, must-revalidate");
+  } else if (p.endsWith(".wasm")) {
+    c.header("Cache-Control", "public, max-age=86400, must-revalidate");
+  } else if (p.startsWith("/projects-showcase/") && /\.(html|js|css)$/.test(p)) {
+    c.header("Cache-Control", "public, max-age=3600");
+  }
 });
 
 // Serve static files
