@@ -7,6 +7,7 @@ dist
 *.tgz
 public/js
 public/projects
+public/sw.js
 
 # zig
 zig-out
