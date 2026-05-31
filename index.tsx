@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
+import { logger } from "hono/logger";
 import { rateLimiter } from "hono-rate-limiter";
 import { Layout } from "./components/Layout.tsx";
 import { ContributionsView } from "./components/Contributions.tsx";
@@ -17,6 +18,12 @@ const { services: s3Service, errors } = linodeS3;
 
 
 const app = new Hono();
+
+const isDev = process.env.NODE_ENV !== "production";
+
+if (isDev) {
+  app.use("*", logger());
+}
 
 // Explicitly serve WASM files with correct content type
 app.get("*.wasm", async (c) => {
