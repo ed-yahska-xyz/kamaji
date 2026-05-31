@@ -67,6 +67,12 @@ body {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* When the home button is also floating top-right, the pill makes room
+   for both buttons + the gap between them. */
+body:has(.floating-home) .title-pill {
+    max-width: calc(100% - (2 * var(--nav-edge)) - (2 * var(--hamburger-size)) - 1.25rem);
+}
+
 a.title-pill:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
@@ -101,11 +107,11 @@ a.title-pill:hover {
     }
 }
 
-/* Floating hamburger — top-right; tablet/desktop only */
-.floating-hamburger {
+/* Floating action buttons — top-right; tablet/desktop only */
+.floating-hamburger,
+.floating-home {
     position: fixed;
     top: var(--nav-edge);
-    right: var(--nav-edge);
     z-index: 60;
     width: var(--hamburger-size);
     height: var(--hamburger-size);
@@ -119,14 +125,25 @@ a.title-pill:hover {
     cursor: pointer;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-decoration: none;
 }
 
-.floating-hamburger:hover {
+.floating-hamburger {
+    right: var(--nav-edge);
+}
+
+.floating-home {
+    right: calc(var(--nav-edge) + var(--hamburger-size) + 0.5rem);
+}
+
+.floating-hamburger:hover,
+.floating-home:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
 }
 
-.floating-hamburger:focus-visible {
+.floating-hamburger:focus-visible,
+.floating-home:focus-visible {
     outline: 3px solid var(--color-yellow);
     outline-offset: 3px;
 }
@@ -334,6 +351,7 @@ a.title-pill:hover {
 /* Responsive swap: tab bar on narrow screens, hamburger on wider */
 @media (max-width: 767px) {
     .floating-hamburger,
+    .floating-home,
     .nav-menu {
         display: none;
     }
