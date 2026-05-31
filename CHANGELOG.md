@@ -1,5 +1,33 @@
 # kamaji
 
+## 0.4.1
+
+### Patch Changes
+
+- [#45](https://github.com/ed-yahska-xyz/kamaji/pull/45) [`cff126a`](https://github.com/ed-yahska-xyz/kamaji/commit/cff126a2a3491e6fec84333a4d7054f91a60de9a) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Add `Cache-Control: public, max-age=300` to the `/api/github-contributions` response so browsers (and any reverse proxy / CDN) cache the response for 5 minutes. The home page fires the HTMX contributions request on every visit, and the upstream GraphQL roundtrip was the single largest server-side contributor to perceived home-page latency (~405ms uncached vs <1ms for everything else). Back/forward navigations and quick reloads now skip the request entirely.
+
+- [#43](https://github.com/ed-yahska-xyz/kamaji/pull/43) [`ddc2f85`](https://github.com/ed-yahska-xyz/kamaji/commit/ddc2f85cec0e427f37ea1e62af3f092b4bc603b3) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Self-host htmx instead of loading from unpkg. Removes a render-blocking
+  third-party request whose latency varied from ~100ms to a stall, and which
+  blocked the home page from painting on flaky networks. The file is copied
+  from `node_modules/htmx.org/dist/htmx.min.js` to `public/js/htmx.min.js`
+  during `bun run build`, and the script tag in `Layout.tsx` now points at
+  the local path with `defer`.
+
+- [#48](https://github.com/ed-yahska-xyz/kamaji/pull/48) [`766bcdd`](https://github.com/ed-yahska-xyz/kamaji/commit/766bcddd668f3d7449076a58e55c6a233155e70a) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Add Cache-Control headers to static assets served by Hono's serveStatic.
+  Previously every reload re-downloaded CSS/JS/WASM in full. Now: built
+  JS and styles.css cache for 1 hour with must-revalidate, WASM caches
+  for 24 hours with must-revalidate, project-showcase HTML/JS/CSS caches
+  for 1 hour, and /sw.js is no-cache (so service-worker updates always
+  reach clients). Filenames aren't content-hashed yet, so we use
+  must-revalidate rather than immutable.
+
+- [#46](https://github.com/ed-yahska-xyz/kamaji/pull/46) [`9abf82b`](https://github.com/ed-yahska-xyz/kamaji/commit/9abf82b3e9077383a3b5a7f1acfff454b39ab482) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Fix stale service-worker caching that occasionally required two hard
+  reloads to pick up redesigned pages. Bumps the notes cache name to
+  v2 so old caches evict on activate, registers a visibilitychange
+  handler that calls `registration.update()` when a tab returns to the
+  foreground, and adds an inline invalidation playbook at the top of
+  `workers/sw.js` so future bumps are obvious.
+
 ## 0.4.0
 
 ### Minor Changes
