@@ -32,6 +32,10 @@ for (const output of results.outputs) {
   console.log(`  - ${output.path}`);
 }
 
+// Copy vendored htmx into public/js so we can serve /js/htmx.min.js locally
+await cp("node_modules/htmx.org/dist/htmx.min.js", "public/js/htmx.min.js", { force: true });
+console.log("✓ Copied htmx.min.js → public/js/htmx.min.js");
+
 // Copy static assets (html, js, css, wasm) from projects-showcase to public
 const assetGlob = new Glob("projects-showcase/**/*.{html,js,css,wasm}");
 const copiedFiles: string[] = [];

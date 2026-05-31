@@ -64,7 +64,8 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubti
           </>
         )}
         <link rel="stylesheet" href="/styles.css" />
-        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        {/* htmx v1.9.10 — self-hosted; bump devDep in package.json to upgrade */}
+        <script src="/js/htmx.min.js" defer></script>
       </head>
       <body>
         <nav class="navbar">
