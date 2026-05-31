@@ -1,10 +1,17 @@
 import type { FC, PropsWithChildren } from "hono/jsx";
 import { html } from "hono/html";
 import type { Profile } from "../data/types.ts";
+import { Navigation } from "./nav/Navigation.tsx";
 
 const ServiceWorkerRegister = () => html`
   <script type="module">
     import "/js/sw-register.js";
+  </script>
+`;
+
+const NavScript = () => html`
+  <script type="module">
+    import "/js/nav.js";
   </script>
 `;
 
@@ -62,20 +69,7 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubti
         <script src="/js/htmx.min.js" defer></script>
       </head>
       <body>
-        <nav class="navbar">
-          <div class="container">
-            <div class="nav-brand">
-              <div class="subtitle">
-                {pageSubtitle || "Engineering with Purpose, Creativity & a Lot of Fun"}
-              </div>
-            </div>
-            <div class="nav-links">
-              {currentPath !== "/" && <a href="/" class="nav-link">Home</a>}
-              {currentPath !== "/code" && <a href="/code" class="nav-link">Code</a>}
-              {currentPath !== "/notes" && <a href="/notes" class="nav-link">Notes</a>}
-            </div>
-          </div>
-        </nav>
+        <Navigation profile={profile} currentPath={currentPath} pageSubtitle={pageSubtitle} />
 
         <main class="container">
           {children}
@@ -86,6 +80,7 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubti
             <p>&copy; {profile.footer.copyright}. {profile.footer.tagline}</p>
           </div>
         </footer>
+        <NavScript />
         <ServiceWorkerRegister />
       </body>
     </html>
