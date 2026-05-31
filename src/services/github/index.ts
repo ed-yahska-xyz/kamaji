@@ -5,6 +5,7 @@ const path = "/run/secrets/contributions_pat";
 const params = {
     endpoint: "https://api.github.com/graphql",
 }
+
 export async function getContributions(): Promise<any> {
     const query = `
         query {

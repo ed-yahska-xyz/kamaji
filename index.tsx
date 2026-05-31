@@ -192,6 +192,7 @@ app.get("/api/contact", (c) => {
 app.get("/api/github-contributions", async (c) => {
   const contributions = await getContributions();
   const contributionsJSON = contributions;
+  c.header("Cache-Control", "public, max-age=300");
   return c.html(
     <ContributionsView weeks={contributionsJSON?.data?.viewer?.contributionsCollection?.contributionCalendar?.weeks}/>
   )
