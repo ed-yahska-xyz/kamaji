@@ -1,5 +1,17 @@
 # kamaji
 
+## 0.5.0
+
+### Minor Changes
+
+- [#50](https://github.com/ed-yahska-xyz/kamaji/pull/50) [`9e50341`](https://github.com/ed-yahska-xyz/kamaji/commit/9e5034153b470ffe65130310a8874774958d95f7) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Redesign the home page as an editorial split. Left column holds the bio (`PORTFOLIO` eyebrow, AKSHAY SHINDE display name, role, intro copy, 7+ years / M.S. stats, and `Get In Touch` + `View Code` actions). Right column holds a black-bordered showcase frame around a randomly-selected live demo (Boids or Game of Life) with a corner `· LIVE` badge and an `Open in Code →` caption overlay. The GitHub contributions strip below switches from a vertical SVG month-grouped grid to a horizontal seven-row grid, with a `LESS / squares / MORE` legend, and becomes horizontally scrollable on narrow viewports. The cyan top bar keeps the "Engineering with Purpose, Creativity & a Lot of Fun" subtitle as the primary navbar mark on `/` and collapses to a block layout below 520px so the subtitle wraps cleanly. Boids showcase agent count is lowered from 2000 to 500 so the iframe doesn't compete with hero paint on mobile. Tagline corrected from "Ebay" to "eBay".
+
+- [#50](https://github.com/ed-yahska-xyz/kamaji/pull/50) [`9e50341`](https://github.com/ed-yahska-xyz/kamaji/commit/9e5034153b470ffe65130310a8874774958d95f7) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Replace the full-width cyan navbar with a floating pill + adaptive navigation. A rounded cyan title pill ("Akshay Shinde · [subtitle]") floats top-left on every page. On tablet/desktop a small black hamburger button floats top-right and opens an anchored nav menu. On mobile (<768px) the hamburger is replaced by a bottom tab bar that mirrors the nav items — and if the item count grows past 4 the tab bar collapses to the first three primary items plus a `More` tab that opens a native `<dialog>`-based bottom sheet listing every section. Native focus trap, Esc-to-close, and backdrop-click-to-close come from the browser; the client module (`src/client/nav.ts`) is ~50 lines of vanilla DOM. Adds `data/nav.ts` as a single source of truth for nav items and active-route matching.
+
+### Patch Changes
+
+- [#51](https://github.com/ed-yahska-xyz/kamaji/pull/51) [`4fb6402`](https://github.com/ed-yahska-xyz/kamaji/commit/4fb64026457fa961b58346a71b6a741f0280c230) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Stop tracking `public/sw.js`. It's a build artifact — `build.ts` copies `workers/sw.js` → `public/sw.js` on every `bun run build`. Keeping it in git meant the committed copy could (and did) drift from the source whenever a PR updated `workers/sw.js` without re-running the build. Now matches how `public/js/` and `public/projects/` are already gitignored. Production Docker builds always run `bun run build` so the runtime image is unaffected.
+
 ## 0.4.1
 
 ### Patch Changes
