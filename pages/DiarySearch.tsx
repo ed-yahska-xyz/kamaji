@@ -1,22 +1,11 @@
 import type { FC } from "hono/jsx";
 import type { TaggedParagraph } from "../src/services/diary/index.ts";
+import { formatAppDate } from "../src/services/diary/index.ts";
 
 type DiarySearchPageProps = {
   tag: string;
   results: TaggedParagraph[];
 };
-
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const date = new Date(Date.UTC(y!, m! - 1, d!));
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 function groupByDate(rows: TaggedParagraph[]): Map<string, TaggedParagraph[]> {
   const out = new Map<string, TaggedParagraph[]>();
@@ -62,7 +51,7 @@ export const DiarySearchPage: FC<DiarySearchPageProps> = ({ tag, results }) => {
           {[...grouped.entries()].map(([date, items]) => (
             <section class="diary-search-group" key={date}>
               <h2 class="diary-search-date">
-                <a href={`/diary/${date}`}>{formatDate(date)}</a>
+                <a href={`/diary/${date}`}>{formatAppDate(date)}</a>
               </h2>
               <ol class="diary-paragraphs">
                 {items.map((p) => (

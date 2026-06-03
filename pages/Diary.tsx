@@ -1,23 +1,12 @@
 import type { FC } from "hono/jsx";
 import type { DayEntry } from "../src/services/diary/index.ts";
+import { formatAppDate } from "../src/services/diary/index.ts";
 
 type DiaryDayPageProps = {
   date: string;
   entry: DayEntry | null;
   isAdmin?: boolean;
 };
-
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const date = new Date(Date.UTC(y!, m! - 1, d!));
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 export const DiaryDayPage: FC<DiaryDayPageProps> = ({ date, entry, isAdmin }) => {
   const paragraphs = entry?.paragraphs ?? [];
@@ -26,7 +15,7 @@ export const DiaryDayPage: FC<DiaryDayPageProps> = ({ date, entry, isAdmin }) =>
     <div class="diary-day">
       <header class="diary-day-header">
         <a class="diary-back" href="/">← Back to grid</a>
-        <h1 class="diary-date">{formatDate(date)}</h1>
+        <h1 class="diary-date">{formatAppDate(date)}</h1>
         <p class="diary-date-iso">{date}</p>
         {isAdmin && (
           <a class="diary-add-link" href={`/diary/new?date=${date}`}>

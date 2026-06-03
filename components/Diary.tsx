@@ -1,5 +1,15 @@
 import type { FC } from "hono/jsx";
 import type { DayCount } from "../src/services/diary/index.ts";
+import {
+  isoWeekNumber,
+  monthIndexFromIso,
+  toAppISODate,
+} from "../src/services/diary/index.ts";
+
+const MONTH_ABBR = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 interface DiaryGridProps {
   dayCounts: DayCount[];
@@ -22,10 +32,6 @@ function getColor(count: number): string {
   return PALETTE.peak;
 }
 
-function isoDate(d: Date): string {
-  return d.toISOString().split("T")[0]!;
-}
-
 export interface GridWindow {
   start: string;
   end: string;
@@ -38,8 +44,8 @@ export function buildGridWindow(now: Date = new Date()): GridWindow {
     const days: string[] = [];
     for (let d = 0; d < 7; d++) {
       const date = new Date(now);
-      date.setDate(date.getDate() - (w * 7 + (6 - d)));
-      days.push(isoDate(date));
+      date.setUTCDate(date.getUTCDate() - (w * 7 + (6 - d)));
+      days.push(toAppISODate(date));
     }
     weeks.push(days);
   }
@@ -60,40 +66,54 @@ export const DiaryGrid: FC<DiaryGridProps> = ({ dayCounts, title = "Diary" }) =>
     <div class="contributions">
       <div class="contributions-header">
         <span class="contributions-title">{title}</span>
-        <div class="contributions-legend">
-          <span class="legend-label">Less</span>
-          <div class="legend-squares" aria-hidden="true">
-            <div class="legend-square" style={`background-color: ${PALETTE.none};`} />
-            <div class="legend-square" style={`background-color: ${PALETTE.low};`} />
-            <div class="legend-square" style={`background-color: ${PALETTE.mid};`} />
-            <div class="legend-square" style={`background-color: ${PALETTE.high};`} />
-            <div class="legend-square" style={`background-color: ${PALETTE.peak};`} />
-          </div>
-          <span class="legend-label">More</span>
-        </div>
       </div>
-      <div class="contributions-grid" role="img" aria-label={`${title} grid`}>
-        {weeks.map((week, wi) => (
-          <div class="contributions-week" key={wi}>
-            {week.map((date) => {
-              const count = lookup.get(date) ?? 0;
-              const label =
-                count === 0
-                  ? `No entry on ${date}`
-                  : `${count} paragraph${count === 1 ? "" : "s"} on ${date}`;
-              return (
-                <a
-                  key={date}
-                  href={`/diary/${date}`}
-                  class="contributions-cell"
-                  style={`background-color: ${getColor(count)};`}
-                  title={label}
-                  aria-label={label}
-                />
-              );
-            })}
-          </div>
-        ))}
+      <div class="contributions-frame" role="img" aria-label={`${title} grid`}>
+        <div class="contributions-scale" aria-hidden="true">
+          {weeks.map((week, wi) => {
+            const first = week[0]!;
+            const monthIdx = monthIndexFromIso(first);
+            const prevMonth =
+              wi > 0 ? monthIndexFromIso(weeks[wi - 1]![0]!) : -1;
+            const showMonth = monthIdx !== prevMonth;
+            return (
+              <div class="contributions-scale-cell" key={wi}>
+                {showMonth && (
+                  <>
+                    <span class="contributions-scale-month">
+                      {MONTH_ABBR[monthIdx - 1]}
+                    </span>
+                    <span class="contributions-scale-week">
+                      w{isoWeekNumber(first)}
+                    </span>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div class="contributions-grid">
+          {weeks.map((week, wi) => (
+            <div class="contributions-week" key={wi}>
+              {week.map((date) => {
+                const count = lookup.get(date) ?? 0;
+                const label =
+                  count === 0
+                    ? `No entry on ${date} (week ${isoWeekNumber(date)})`
+                    : `${count} paragraph${count === 1 ? "" : "s"} on ${date} (week ${isoWeekNumber(date)})`;
+                return (
+                  <a
+                    key={date}
+                    href={`/diary/${date}`}
+                    class="contributions-cell"
+                    style={`background-color: ${getColor(count)};`}
+                    title={label}
+                    aria-label={label}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

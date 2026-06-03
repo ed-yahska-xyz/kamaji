@@ -21,6 +21,7 @@ import {
   grantAdminCookie,
   revokeAdminCookie,
   searchByTag,
+  toAppISODate,
   tokenMatches,
   type DayCount,
 } from "./src/services/diary/index.ts";
@@ -90,7 +91,7 @@ app.get("/blog", (c) => {
 });
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const todayIso = () => new Date().toISOString().split("T")[0]!;
+const todayIso = () => toAppISODate();
 
 app.get("/diary", async (c) => {
   const raw = c.req.query("tag")?.trim();
