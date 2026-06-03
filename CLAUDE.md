@@ -41,6 +41,47 @@ Personal website featuring professional bio and blog, built with Bun + HTMX.
 - Runtime: Bun
 - Frontend: HTMX + HTML + CSS
 - Server: Hono (with Hono JSX for server-side rendering)
+- Database: PostgreSQL 16 (diary entries) via `postgres` driver
+
+## Environment
+
+| Variable | Required for | Notes |
+|---|---|---|
+| `DATABASE_URL` | Diary read/write | `postgres://user:pw@host:5432/diary`. If unset, diary features degrade gracefully (home grid renders empty, /diary/:date shows "no entry"). |
+| `ADMIN_TOKEN` | Writing diary entries | Single-user admin token. Visit `/diary/login?token=…` once to set the cookie. |
+| `LINODE_S3_CLUSTER_ID`, `LINODE_S3_BUCKET_NAME`, `LINODE_S3_READ_*` | Notes browsing | Existing. |
+| `CONTRIBUTIONS_PAT` | — | **Removed** — GitHub contributions replaced by the diary. |
+
+Production reads `ADMIN_TOKEN` from `/run/secrets/admin_token` (Docker secret) when present; falls back to env var.
+
+## Diary
+
+The home page heatmap shows paragraph counts per day for the trailing 52 weeks. Each cell links to `/diary/YYYY-MM-DD`.
+
+- Schema and migrations live in [`../blogs/db/`](../blogs/db). Run `bun run migrate` there against `DATABASE_URL`.
+- Postgres runs as a service in `../virtuals/kamaji/docker-compose.yml`.
+- Write flow: `/diary/login?token=<ADMIN_TOKEN>` → `/diary/new` → POST `/api/diary/paragraphs` → redirected to `/diary/:date`.
+- Hashtags (`#word`) in paragraph bodies are auto-extracted at write time and searchable at `/diary?tag=<word>`.
+
+### Local diary dev
+
+```bash
+# 1. Start Postgres
+cd ../virtuals/kamaji
+POSTGRES_PASSWORD=devpass ADMIN_TOKEN=devtoken docker compose up -d postgres
+
+# 2. Apply schema + seed
+cd ../../blogs/db
+bun install
+DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary bun run migrate
+DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary bun run seed   # optional
+
+# 3. Run kamaji against it
+cd ../../kamaji
+DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary ADMIN_TOKEN=devtoken bun run dev
+```
+
+To expose Postgres to the host for local kamaji, add `ports: ["5432:5432"]` to the `postgres` service in a compose override.
 
 ## Build Process
 

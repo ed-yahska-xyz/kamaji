@@ -28,6 +28,7 @@
   "dependencies": {
     "hono": "^4.10.8",
     "hono-rate-limiter": "^0.5.3",
+    "postgres": "^3.4.9",
     "relative-pathing": "github:ed-yahska-xyz/relative-pathing#main"
   },
   "trustedDependencies": [
