@@ -12,13 +12,14 @@ export {
   getParagraphCountsByDateRange,
   getEntryByDate,
   createParagraph,
-  searchByTag,
+  searchByTags,
+  getAllTags,
 } from "./repository";
-export type { DayCount, DayEntry, Paragraph, TaggedParagraph } from "./repository";
-export {
-  adminAuthConfigured,
-  isAdmin,
-  tokenMatches,
-  grantAdminCookie,
-  revokeAdminCookie,
-} from "./auth";
+export type {
+  DayCount,
+  DayEntry,
+  Paragraph,
+  TaggedParagraph,
+  TagCount,
+} from "./repository";
+export { hasAuth, isAdmin } from "./auth";

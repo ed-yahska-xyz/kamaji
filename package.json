@@ -26,8 +26,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@types/pg": "^8.20.0",
+    "better-auth": "^1.6.14",
     "hono": "^4.10.8",
     "hono-rate-limiter": "^0.5.3",
+    "pg": "^8.21.0",
     "postgres": "^3.4.9",
     "relative-pathing": "github:ed-yahska-xyz/relative-pathing#main"
   },

@@ -6,25 +6,26 @@ import { HomePage } from "./pages/Home.tsx";
 import { BlogPage } from "./pages/Blog.tsx";
 import { CodePage } from "./pages/Code.tsx";
 import { DiaryDayPage } from "./pages/Diary.tsx";
+import { DiaryLoginPage } from "./pages/DiaryLogin.tsx";
 import { DiaryNewPage } from "./pages/DiaryNew.tsx";
 import { DiarySearchPage } from "./pages/DiarySearch.tsx";
+import { DiarySearchResultsPage } from "./pages/DiarySearchResults.tsx";
 import { NotesExplorerPage } from "./pages/NotesExplorer.tsx";
 import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
 import { buildGridWindow } from "./components/Diary.tsx";
 import {
   createParagraph,
+  getAllTags,
   getEntryByDate,
   getParagraphCountsByDateRange,
   hasDb,
   isAdmin,
-  grantAdminCookie,
-  revokeAdminCookie,
-  searchByTag,
+  searchByTags,
   toAppISODate,
-  tokenMatches,
   type DayCount,
 } from "./src/services/diary/index.ts";
+import { auth, hasAuth } from "./src/services/auth/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
 import linodeS3 from "./src/services/linode-s3"
 import { getMarkdownContent, markdownToHtml, extractToc } from "./src/services/linode-s3/markdown"
@@ -93,44 +94,142 @@ app.get("/blog", (c) => {
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const todayIso = () => toAppISODate();
 
-app.get("/diary", async (c) => {
-  const raw = c.req.query("tag")?.trim();
-  if (!raw) return c.redirect("/");
+function parseTagsParam(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return [
+    ...new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim().replace(/^#/, "").toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+}
 
-  const tag = raw.replace(/^#/, "").toLowerCase();
-  const results = hasDb()
-    ? await searchByTag(tag).catch((err) => {
-        console.error(`[diary] search failed for #${tag}:`, err);
+app.get("/diary/search", async (c) => {
+  const allTags = hasDb()
+    ? await getAllTags().catch((err) => {
+        console.error("[diary] getAllTags failed:", err);
         return [];
       })
     : [];
 
   return c.html(
     <Layout
-      title={`Diary · #${tag} - ${profile.name}`}
+      title={`Search diary - ${profile.name}`}
       profile={profile}
       currentPath="/diary"
-      pageSubtitle={`Search #${tag}`}
+      pageSubtitle="Search by tag"
     >
-      <DiarySearchPage tag={tag} results={results} />
+      <DiarySearchPage allTags={allTags} initialQuery={c.req.query("q") ?? ""} />
     </Layout>,
   );
 });
 
-app.get("/diary/login", (c) => {
-  const token = c.req.query("token") ?? "";
-  if (!tokenMatches(token)) return c.text("Unauthorized", 401);
-  grantAdminCookie(c);
-  return c.redirect(c.req.query("next") || "/diary/new");
+app.get("/diary", async (c) => {
+  const tags = parseTagsParam(c.req.query("tag"));
+  if (tags.length === 0) return c.redirect("/diary/search");
+
+  const results = hasDb()
+    ? await searchByTags(tags).catch((err) => {
+        console.error(`[diary] search failed for ${tags.join(",")}:`, err);
+        return [];
+      })
+    : [];
+
+  const titleTags = tags.map((t) => `#${t}`).join(" ");
+  return c.html(
+    <Layout
+      title={`Diary · ${titleTags} - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle={`Search ${titleTags}`}
+    >
+      <DiarySearchResultsPage tags={tags} results={results} />
+    </Layout>,
+  );
 });
 
-app.get("/diary/logout", (c) => {
-  revokeAdminCookie(c);
+// Better Auth mount — owns /api/auth/sign-in/email, /sign-out, /get-session, etc.
+if (auth) {
+  app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+}
+
+app.get("/diary/login", async (c) => {
+  if (!hasAuth()) return c.text("Auth unavailable", 503);
+  if (await isAdmin(c)) return c.redirect(c.req.query("next") || "/diary/new");
+  return c.html(
+    <Layout
+      title={`Sign in - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle="Daily diary"
+    >
+      <DiaryLoginPage next={c.req.query("next") ?? "/diary/new"} />
+    </Layout>,
+  );
+});
+
+// Form wrapper around Better Auth's JSON sign-in endpoint. Lets us use a
+// plain HTML form (no JS) and forward the auth cookies into our redirect.
+app.post("/diary/login", async (c) => {
+  if (!auth) return c.text("Auth unavailable", 503);
+  const form = await c.req.parseBody();
+  const email = String(form.email ?? "").trim();
+  const password = String(form.password ?? "");
+  const next = String(form.next ?? "/diary/new").trim() || "/diary/new";
+
+  const renderError = (status: 400 | 401, error: string) =>
+    c.html(
+      <Layout
+        title={`Sign in - ${profile.name}`}
+        profile={profile}
+        currentPath="/diary"
+        pageSubtitle="Daily diary"
+      >
+        <DiaryLoginPage next={next} error={error} email={email} />
+      </Layout>,
+      status,
+    );
+
+  if (!email || !password) return renderError(400, "Email and password are required.");
+
+  let authResp: Response;
+  try {
+    authResp = await auth.api.signInEmail({
+      body: { email, password },
+      asResponse: true,
+    });
+  } catch (err) {
+    console.error("[diary] sign-in threw:", err);
+    return renderError(401, "Invalid email or password.");
+  }
+
+  if (!authResp.ok) {
+    return renderError(401, "Invalid email or password.");
+  }
+
+  const setCookies = authResp.headers.getSetCookie?.() ?? [];
+  const redirect = c.redirect(next);
+  for (const cookie of setCookies) {
+    redirect.headers.append("Set-Cookie", cookie);
+  }
+  return redirect;
+});
+
+app.get("/diary/logout", async (c) => {
+  if (auth) {
+    try {
+      await auth.api.signOut({ headers: c.req.raw.headers });
+    } catch (err) {
+      console.error("[diary] sign-out failed:", err);
+    }
+  }
   return c.redirect("/");
 });
 
-app.get("/diary/new", (c) => {
-  if (!isAdmin(c)) return c.text("Unauthorized", 401);
+app.get("/diary/new", async (c) => {
+  if (!(await isAdmin(c))) return c.redirect("/diary/login?next=/diary/new");
   const date = c.req.query("date");
   const defaultDate = date && DATE_RE.test(date) ? date : todayIso();
   return c.html(
@@ -146,7 +245,7 @@ app.get("/diary/new", (c) => {
 });
 
 app.post("/api/diary/paragraphs", async (c) => {
-  if (!isAdmin(c)) return c.text("Unauthorized", 401);
+  if (!(await isAdmin(c))) return c.text("Unauthorized", 401);
 
   const form = await c.req.parseBody();
   const date = String(form.date ?? "").trim();
@@ -183,10 +282,15 @@ app.get("/diary/:date", async (c) => {
   const date = c.req.param("date");
   if (!DATE_RE.test(date)) return c.notFound();
 
-  const entry = hasDb() ? await getEntryByDate(date).catch((err) => {
-    console.error(`[diary] lookup failed for ${date}:`, err);
-    return null;
-  }) : null;
+  const [entry, admin] = await Promise.all([
+    hasDb()
+      ? getEntryByDate(date).catch((err) => {
+          console.error(`[diary] lookup failed for ${date}:`, err);
+          return null;
+        })
+      : Promise.resolve(null),
+    isAdmin(c),
+  ]);
 
   return c.html(
     <Layout
@@ -195,7 +299,7 @@ app.get("/diary/:date", async (c) => {
       currentPath="/diary"
       pageSubtitle="Daily diary"
     >
-      <DiaryDayPage date={date} entry={entry} isAdmin={isAdmin(c)} />
+      <DiaryDayPage date={date} entry={entry} isAdmin={admin} />
     </Layout>
   );
 });

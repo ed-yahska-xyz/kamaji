@@ -47,12 +47,23 @@ Personal website featuring professional bio and blog, built with Bun + HTMX.
 
 | Variable | Required for | Notes |
 |---|---|---|
-| `DATABASE_URL` | Diary read/write | `postgres://user:pw@host:5432/diary`. If unset, diary features degrade gracefully (home grid renders empty, /diary/:date shows "no entry"). |
-| `ADMIN_TOKEN` | Writing diary entries | Single-user admin token. Visit `/diary/login?token=…` once to set the cookie. |
+| `DATABASE_URL` | Diary read/write, auth | `postgres://user:pw@host:5432/diary`. If unset, diary + auth features degrade gracefully. |
+| `BETTER_AUTH_SECRET` | Signing session tokens | Long random string. Rotate to invalidate every session. |
+| `AUTH_BASE_URL` | Auth redirects | Public origin, e.g. `https://ed-yahska.xyz`. Defaults to `http://localhost:3000`. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | One-shot admin seed only | Used by `scripts/seed-admin.ts`. Not read at runtime. |
 | `LINODE_S3_CLUSTER_ID`, `LINODE_S3_BUCKET_NAME`, `LINODE_S3_READ_*` | Notes browsing | Existing. |
-| `CONTRIBUTIONS_PAT` | — | **Removed** — GitHub contributions replaced by the diary. |
 
-Production reads `ADMIN_TOKEN` from `/run/secrets/admin_token` (Docker secret) when present; falls back to env var.
+Sign-up is **disabled** at the HTTP layer. Only the one user created by the seed script can sign in.
+
+## Auth (Better Auth)
+
+Sessions are stored server-side in Postgres (`session` table). The cookie holds an opaque token — leaking it leaks one session, not the master credential. Revoke by deleting the row.
+
+- Library: [`better-auth`](https://www.better-auth.com/) with the built-in Kysely + `pg` adapter.
+- Tables: `user`, `session`, `account`, `verification` (migration `0002_auth.sql` in `../blogs/db`).
+- Routes mounted at `/api/auth/*` (managed by Better Auth).
+- Our wrapper at `POST /diary/login` accepts a plain HTML form, hands it to `auth.api.signInEmail`, and forwards the session cookie. Logout via `GET /diary/logout`.
+- Hash algorithm: scrypt (Better Auth default).
 
 ## Diary
 
@@ -60,7 +71,7 @@ The home page heatmap shows paragraph counts per day for the trailing 52 weeks. 
 
 - Schema and migrations live in [`../blogs/db/`](../blogs/db). Run `bun run migrate` there against `DATABASE_URL`.
 - Postgres runs as a service in `../virtuals/kamaji/docker-compose.yml`.
-- Write flow: `/diary/login?token=<ADMIN_TOKEN>` → `/diary/new` → POST `/api/diary/paragraphs` → redirected to `/diary/:date`.
+- Write flow: sign in at `/diary/login` → `/diary/new` → POST `/api/diary/paragraphs` → redirected to `/diary/:date`.
 - Hashtags (`#word`) in paragraph bodies are auto-extracted at write time and searchable at `/diary?tag=<word>`.
 
 ### Local diary dev
@@ -68,7 +79,7 @@ The home page heatmap shows paragraph counts per day for the trailing 52 weeks. 
 ```bash
 # 1. Start Postgres
 cd ../virtuals/kamaji
-POSTGRES_PASSWORD=devpass ADMIN_TOKEN=devtoken docker compose up -d postgres
+POSTGRES_PASSWORD=devpass docker compose up -d postgres
 
 # 2. Apply schema + seed
 cd ../../blogs/db
@@ -76,9 +87,19 @@ bun install
 DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary bun run migrate
 DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary bun run seed   # optional
 
-# 3. Run kamaji against it
+# 3. Create the admin user (one-shot)
 cd ../../kamaji
-DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary ADMIN_TOKEN=devtoken bun run dev
+DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary \
+  ADMIN_EMAIL=you@example.com \
+  ADMIN_PASSWORD='a-strong-password-here' \
+  bun run scripts/seed-admin.ts
+
+# 4. Run kamaji
+DATABASE_URL=postgres://kamaji:devpass@localhost:5432/diary \
+  BETTER_AUTH_SECRET=dev-secret-please-replace-in-prod \
+  bun run dev
+
+# Sign in at http://localhost:3000/diary/login
 ```
 
 To expose Postgres to the host for local kamaji, add `ports: ["5432:5432"]` to the `postgres` service in a compose override.

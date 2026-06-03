@@ -67,7 +67,7 @@ const serverResult = await Bun.build({
   format: "esm",
   minify: process.env.NODE_ENV === "production",
   sourcemap: "none",
-  external: ["hono", "hono/*"],
+  packages: "external",
   naming: "[name].js",
 });
 

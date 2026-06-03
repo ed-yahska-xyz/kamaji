@@ -119,9 +119,14 @@ export async function createParagraph(input: {
   };
 }
 
-export async function searchByTag(tag: string): Promise<TaggedParagraph[]> {
+export async function searchByTags(tags: string[]): Promise<TaggedParagraph[]> {
+  if (tags.length === 0) return [];
   const db = requireDb();
-  const normalized = tag.toLowerCase().replace(/^#/, "");
+  const normalized = [
+    ...new Set(tags.map((t) => t.toLowerCase().replace(/^#/, "")).filter(Boolean)),
+  ];
+  if (normalized.length === 0) return [];
+
   const rows = await db<
     {
       id: number;
@@ -137,10 +142,12 @@ export async function searchByTag(tag: string): Promise<TaggedParagraph[]> {
            ARRAY(
              SELECT tag FROM paragraph_hashtags h2 WHERE h2.paragraph_id = p.id ORDER BY tag
            ) AS tags
-    FROM paragraph_hashtags h
-    JOIN paragraphs p ON p.id = h.paragraph_id
+    FROM paragraphs p
     JOIN diary_entries e ON e.id = p.entry_id
-    WHERE h.tag = ${normalized}
+    WHERE EXISTS (
+      SELECT 1 FROM paragraph_hashtags h
+      WHERE h.paragraph_id = p.id AND h.tag = ANY(${normalized})
+    )
     ORDER BY e.entry_date DESC, p.position ASC
   `;
   return rows.map((r) => ({
@@ -151,4 +158,20 @@ export async function searchByTag(tag: string): Promise<TaggedParagraph[]> {
     createdAt: r.created_at,
     date: r.entry_date,
   }));
+}
+
+export interface TagCount {
+  tag: string;
+  count: number;
+}
+
+export async function getAllTags(): Promise<TagCount[]> {
+  const db = requireDb();
+  const rows = await db<{ tag: string; count: number }[]>`
+    SELECT tag, COUNT(*)::int AS count
+    FROM paragraph_hashtags
+    GROUP BY tag
+    ORDER BY count DESC, tag ASC
+  `;
+  return rows.map((r) => ({ tag: r.tag, count: r.count }));
 }
