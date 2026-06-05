@@ -1,7 +1,8 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { Pool } from "pg";
+import { readSecret } from "../secrets";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = readSecret("database_url", "DATABASE_URL");
 
 function trustedOrigins(): string[] {
   const env = process.env.AUTH_TRUSTED_ORIGINS;
@@ -10,8 +11,8 @@ function trustedOrigins(): string[] {
 }
 
 const sharedSecret =
-  process.env.BETTER_AUTH_SECRET ??
-  process.env.DATABASE_URL ??
+  readSecret("better_auth_secret", "BETTER_AUTH_SECRET") ??
+  databaseUrl ??
   "dev-only-insecure-secret";
 
 function makeAuth(opts: { disableSignUp: boolean }) {
