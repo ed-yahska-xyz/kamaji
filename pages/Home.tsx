@@ -1,9 +1,11 @@
 import type { FC } from "hono/jsx";
 import type { Profile } from "../data/types.ts";
-import { ContributionsView } from "../components/Contributions.tsx";
+import { DiaryGrid } from "../components/Diary.tsx";
+import type { DayCount } from "../src/services/diary/index.ts";
 
 type HomePageProps = {
   profile: Profile;
+  dayCounts: DayCount[];
 };
 
 const possibleRandomProjects = [
@@ -21,7 +23,7 @@ const possibleRandomProjects = [
   },
 ];
 
-export const HomePage: FC<HomePageProps> = ({ profile }) => {
+export const HomePage: FC<HomePageProps> = ({ profile, dayCounts }) => {
   const [firstName, ...rest] = profile.name.split(" ");
   const lastName = rest.join(" ");
   const yearsStat = profile.stats[0];
@@ -88,13 +90,8 @@ export const HomePage: FC<HomePageProps> = ({ profile }) => {
           </div>
         </aside>
       </section>
-      <section
-        class="home-contributions"
-        hx-get="/api/github-contributions"
-        hx-trigger="load"
-        hx-swap="outerHTML"
-      >
-        <ContributionsView weeks={[]} />
+      <section class="home-contributions">
+        <DiaryGrid dayCounts={dayCounts} />
       </section>
     </div>
   );

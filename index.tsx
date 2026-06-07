@@ -2,14 +2,30 @@ import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import { rateLimiter } from "hono-rate-limiter";
 import { Layout } from "./components/Layout.tsx";
-import { ContributionsView } from "./components/Contributions.tsx";
 import { HomePage } from "./pages/Home.tsx";
 import { BlogPage } from "./pages/Blog.tsx";
 import { CodePage } from "./pages/Code.tsx";
+import { DiaryDayPage } from "./pages/Diary.tsx";
+import { DiaryLoginPage } from "./pages/DiaryLogin.tsx";
+import { DiaryNewPage } from "./pages/DiaryNew.tsx";
+import { DiarySearchPage } from "./pages/DiarySearch.tsx";
+import { DiarySearchResultsPage } from "./pages/DiarySearchResults.tsx";
 import { NotesExplorerPage } from "./pages/NotesExplorer.tsx";
 import { NotesPage } from "./pages/Notes.tsx";
 import profile from "./data/profile.json";
-import { getContributions } from "./src/services/github/index.ts";
+import { buildGridWindow } from "./components/Diary.tsx";
+import {
+  createParagraph,
+  getAllTags,
+  getEntryByDate,
+  getParagraphCountsByDateRange,
+  hasDb,
+  isAdmin,
+  searchByTags,
+  toAppISODate,
+  type DayCount,
+} from "./src/services/diary/index.ts";
+import { auth, hasAuth } from "./src/services/auth/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
 import linodeS3 from "./src/services/linode-s3"
 import { getMarkdownContent, markdownToHtml, extractToc } from "./src/services/linode-s3/markdown"
@@ -36,7 +52,16 @@ app.get("*.wasm", async (c) => {
 });
 
 // Routes
-app.get("/", (c) => {
+app.get("/", async (c) => {
+  let dayCounts: DayCount[] = [];
+  if (hasDb()) {
+    const { start, end } = buildGridWindow();
+    try {
+      dayCounts = await getParagraphCountsByDateRange(start, end);
+    } catch (err) {
+      console.error("[home] diary query failed:", err);
+    }
+  }
   return c.html(
     <Layout
       title={`${profile.name} - Professional Portfolio`}
@@ -53,7 +78,7 @@ app.get("/", (c) => {
         seeAlso: ["https://www.linkedin.com/in/ednihs-yahska"],
       }}
     >
-      <HomePage profile={profile} />
+      <HomePage profile={profile} dayCounts={dayCounts} />
     </Layout>
   );
 });
@@ -62,6 +87,219 @@ app.get("/blog", (c) => {
   return c.html(
     <Layout title={`Blog - ${profile.name}`} profile={profile} currentPath="/blog">
       <BlogPage />
+    </Layout>
+  );
+});
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const todayIso = () => toAppISODate();
+
+function parseTagsParam(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return [
+    ...new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim().replace(/^#/, "").toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+app.get("/diary/search", async (c) => {
+  const allTags = hasDb()
+    ? await getAllTags().catch((err) => {
+        console.error("[diary] getAllTags failed:", err);
+        return [];
+      })
+    : [];
+
+  return c.html(
+    <Layout
+      title={`Search diary - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle="Search by tag"
+    >
+      <DiarySearchPage allTags={allTags} initialQuery={c.req.query("q") ?? ""} />
+    </Layout>,
+  );
+});
+
+app.get("/diary", async (c) => {
+  const tags = parseTagsParam(c.req.query("tag"));
+  if (tags.length === 0) return c.redirect("/diary/search");
+
+  const results = hasDb()
+    ? await searchByTags(tags).catch((err) => {
+        console.error(`[diary] search failed for ${tags.join(",")}:`, err);
+        return [];
+      })
+    : [];
+
+  const titleTags = tags.map((t) => `#${t}`).join(" ");
+  return c.html(
+    <Layout
+      title={`Diary · ${titleTags} - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle={`Search ${titleTags}`}
+    >
+      <DiarySearchResultsPage tags={tags} results={results} />
+    </Layout>,
+  );
+});
+
+// Better Auth mount — owns /api/auth/sign-in/email, /sign-out, /get-session, etc.
+if (auth) {
+  app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+}
+
+app.get("/diary/login", async (c) => {
+  if (!hasAuth()) return c.text("Auth unavailable", 503);
+  if (await isAdmin(c)) return c.redirect(c.req.query("next") || "/diary/new");
+  return c.html(
+    <Layout
+      title={`Sign in - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle="Daily diary"
+    >
+      <DiaryLoginPage next={c.req.query("next") ?? "/diary/new"} />
+    </Layout>,
+  );
+});
+
+// Form wrapper around Better Auth's JSON sign-in endpoint. Lets us use a
+// plain HTML form (no JS) and forward the auth cookies into our redirect.
+app.post("/diary/login", async (c) => {
+  if (!auth) return c.text("Auth unavailable", 503);
+  const form = await c.req.parseBody();
+  const email = String(form.email ?? "").trim();
+  const password = String(form.password ?? "");
+  const next = String(form.next ?? "/diary/new").trim() || "/diary/new";
+
+  const renderError = (status: 400 | 401, error: string) =>
+    c.html(
+      <Layout
+        title={`Sign in - ${profile.name}`}
+        profile={profile}
+        currentPath="/diary"
+        pageSubtitle="Daily diary"
+      >
+        <DiaryLoginPage next={next} error={error} email={email} />
+      </Layout>,
+      status,
+    );
+
+  if (!email || !password) return renderError(400, "Email and password are required.");
+
+  let authResp: Response;
+  try {
+    authResp = await auth.api.signInEmail({
+      body: { email, password },
+      asResponse: true,
+    });
+  } catch (err) {
+    console.error("[diary] sign-in threw:", err);
+    return renderError(401, "Invalid email or password.");
+  }
+
+  if (!authResp.ok) {
+    return renderError(401, "Invalid email or password.");
+  }
+
+  const setCookies = authResp.headers.getSetCookie?.() ?? [];
+  const redirect = c.redirect(next);
+  for (const cookie of setCookies) {
+    redirect.headers.append("Set-Cookie", cookie);
+  }
+  return redirect;
+});
+
+app.get("/diary/logout", async (c) => {
+  if (auth) {
+    try {
+      await auth.api.signOut({ headers: c.req.raw.headers });
+    } catch (err) {
+      console.error("[diary] sign-out failed:", err);
+    }
+  }
+  return c.redirect("/");
+});
+
+app.get("/diary/new", async (c) => {
+  if (!(await isAdmin(c))) return c.redirect("/diary/login?next=/diary/new");
+  const date = c.req.query("date");
+  const defaultDate = date && DATE_RE.test(date) ? date : todayIso();
+  return c.html(
+    <Layout
+      title={`New diary entry - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle="Daily diary"
+    >
+      <DiaryNewPage defaultDate={defaultDate} />
+    </Layout>
+  );
+});
+
+app.post("/api/diary/paragraphs", async (c) => {
+  if (!(await isAdmin(c))) return c.text("Unauthorized", 401);
+
+  const form = await c.req.parseBody();
+  const date = String(form.date ?? "").trim();
+  const body = String(form.body ?? "").trim();
+
+  const render = (error: string, status: 400 | 503) =>
+    c.html(
+      <Layout
+        title={`New diary entry - ${profile.name}`}
+        profile={profile}
+        currentPath="/diary"
+        pageSubtitle="Daily diary"
+      >
+        <DiaryNewPage defaultDate={date || todayIso()} body={body} error={error} />
+      </Layout>,
+      status,
+    );
+
+  if (!DATE_RE.test(date)) return render("Date must be in YYYY-MM-DD format.", 400);
+  if (!body) return render("Paragraph body cannot be empty.", 400);
+  if (!hasDb()) return render("Database unavailable.", 503);
+
+  try {
+    await createParagraph({ date, body });
+  } catch (err) {
+    console.error("[diary] createParagraph failed:", err);
+    return render("Failed to save paragraph. Check server logs.", 503);
+  }
+
+  return c.redirect(`/diary/${date}`);
+});
+
+app.get("/diary/:date", async (c) => {
+  const date = c.req.param("date");
+  if (!DATE_RE.test(date)) return c.notFound();
+
+  const [entry, admin] = await Promise.all([
+    hasDb()
+      ? getEntryByDate(date).catch((err) => {
+          console.error(`[diary] lookup failed for ${date}:`, err);
+          return null;
+        })
+      : Promise.resolve(null),
+    isAdmin(c),
+  ]);
+
+  return c.html(
+    <Layout
+      title={`Diary · ${date} - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle="Daily diary"
+    >
+      <DiaryDayPage date={date} entry={entry} isAdmin={admin} />
     </Layout>
   );
 });
@@ -174,15 +412,6 @@ app.get("/api/contact", (c) => {
       </div>
     </div>
   );
-});
-
-app.get("/api/github-contributions", async (c) => {
-  const contributions = await getContributions();
-  const contributionsJSON = contributions;
-  c.header("Cache-Control", "public, max-age=300");
-  return c.html(
-    <ContributionsView weeks={contributionsJSON?.data?.viewer?.contributionsCollection?.contributionCalendar?.weeks}/>
-  )
 });
 
 // Static cache headers. Filenames aren't content-hashed, so we use

@@ -1,7 +1,16 @@
 import type { FC, PropsWithChildren } from "hono/jsx";
 import { html } from "hono/html";
+import { statSync } from "node:fs";
 import type { Profile } from "../data/types.ts";
 import { Navigation } from "./nav/Navigation.tsx";
+
+const stylesVersion = (() => {
+  try {
+    return Math.floor(statSync("./public/styles.css").mtimeMs).toString(36);
+  } catch {
+    return "0";
+  }
+})();
 
 const ServiceWorkerRegister = () => html`
   <script type="module">
@@ -64,7 +73,7 @@ export const Layout: FC<LayoutProps> = ({ title, profile, currentPath, pageSubti
             {meta.seeAlso?.map((url) => <link rel="me" href={url} />)}
           </>
         )}
-        <link rel="stylesheet" href="/styles.css" />
+        <link rel="stylesheet" href={`/styles.css?v=${stylesVersion}`} />
         {/* htmx v1.9.10 — self-hosted; bump devDep in package.json to upgrade */}
         <script src="/js/htmx.min.js" defer></script>
       </head>
