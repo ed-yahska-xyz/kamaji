@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.6.0
+
+### Minor Changes
+
+- [#53](https://github.com/ed-yahska-xyz/kamaji/pull/53) [`05f9c74`](https://github.com/ed-yahska-xyz/kamaji/commit/05f9c746b6d2b4f786543f18c42205c66a229df3) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Add a daily diary in place of the GitHub contributions heatmap. The home page now shows a clickable day grid where each day opens its own entry, you can write multiple paragraphs per day, and any `#hashtags` you use become searchable — including across multiple tags at once on the new search page. Sign-in is now more secure, with proper accounts and sessions.
+
 ## 0.5.0
 
 ### Minor Changes
