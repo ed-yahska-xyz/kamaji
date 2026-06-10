@@ -1,5 +1,5 @@
 import { Glob, $ } from "bun";
-import { mkdir, cp, stat } from "fs/promises";
+import { mkdir, cp, rm, stat } from "fs/promises";
 import { dirname, join } from "path";
 
 // Build Zig WASM
@@ -59,12 +59,16 @@ if (copiedFiles.length > 0) {
 
 // The elo predictor (elo/web) fetches data + flag SVGs from a sibling `assets`
 // dir (../assets/*.json, ../assets/flags/*.svg). Those extensions aren't matched
-// by the glob above, so copy the whole assets tree explicitly.
-await cp("projects-showcase/elo/assets", "public/projects-showcase/elo/assets", {
-  recursive: true,
-  force: true,
-});
-console.log("✓ Copied elo assets → public/projects-showcase/elo/assets");
+// by the glob above, so copy the whole assets tree explicitly. Clear the
+// destination first: a recursive cp onto an existing dir throws EEXIST under
+// Bun 1.1 (the Docker build image), and public/ ships those files committed.
+const eloAssetsSrc = "projects-showcase/elo/assets";
+if (await stat(eloAssetsSrc).then(() => true).catch(() => false)) {
+  const eloAssetsDest = "public/projects-showcase/elo/assets";
+  await rm(eloAssetsDest, { recursive: true, force: true });
+  await cp(eloAssetsSrc, eloAssetsDest, { recursive: true });
+  console.log(`✓ Copied elo assets → ${eloAssetsDest}`);
+}
 
 // Build server-side TSX to JavaScript for production
 console.log("\nBuilding server-side TSX...");
