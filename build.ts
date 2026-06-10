@@ -57,6 +57,15 @@ if (copiedFiles.length > 0) {
   }
 }
 
+// The elo predictor (elo/web) fetches data + flag SVGs from a sibling `assets`
+// dir (../assets/*.json, ../assets/flags/*.svg). Those extensions aren't matched
+// by the glob above, so copy the whole assets tree explicitly.
+await cp("projects-showcase/elo/assets", "public/projects-showcase/elo/assets", {
+  recursive: true,
+  force: true,
+});
+console.log("✓ Copied elo assets → public/projects-showcase/elo/assets");
+
 // Build server-side TSX to JavaScript for production
 console.log("\nBuilding server-side TSX...");
 

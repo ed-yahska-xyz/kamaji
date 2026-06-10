@@ -9,6 +9,15 @@ export type Project = {
 
 const PROJECTS_DIR = "./public/projects-showcase";
 
+// Most demos serve from `<dir>/index.html`. A few live in a subdirectory or want
+// a friendlier label than the title-cased directory name — override them here.
+const ENTRY_OVERRIDES: Record<string, string> = {
+  elo: "/projects-showcase/elo/web/index.html",
+};
+const DISPLAY_OVERRIDES: Record<string, string> = {
+  elo: "World Cup Predictor",
+};
+
 export function getProjects(): Project[] {
   const entries = readdirSync(PROJECTS_DIR);
 
@@ -19,11 +28,13 @@ export function getProjects(): Project[] {
     })
     .map((dir) => ({
       name: dir,
-      displayName: dir
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" "),
-      path: `/projects-showcase/${dir}/index.html`,
+      displayName:
+        DISPLAY_OVERRIDES[dir] ??
+        dir
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" "),
+      path: ENTRY_OVERRIDES[dir] ?? `/projects-showcase/${dir}/index.html`,
     }));
 
   return projects;
