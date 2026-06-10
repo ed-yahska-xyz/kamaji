@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.7.1
+
+### Patch Changes
+
+- [#57](https://github.com/ed-yahska-xyz/kamaji/pull/57) [`8c78ac2`](https://github.com/ed-yahska-xyz/kamaji/commit/8c78ac26cbeebd7c8584044bd7ed147b6bd9a6b1) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Fix the production image build failing on the elo predictor assets. The build copied the predictor's data/flag assets with a recursive directory copy, which throws `EEXIST` under the Bun version used in the Docker build when the destination already exists. The copy now clears the destination first, so the container image (and the World Cup predictor it ships) builds and deploys.
+
 ## 0.7.0
 
 ### Minor Changes
