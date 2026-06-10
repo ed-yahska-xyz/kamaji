@@ -16,4 +16,6 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun test
+      # Scope to src/ so vendored projects-showcase demo tests (copied into
+      # public/ at build time) don't run as part of kamaji's suite.
+      - run: bun test src

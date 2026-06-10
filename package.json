@@ -10,7 +10,7 @@
     "build:watch": "bun run build.ts --watch",
     "dev": "bun run build && bun run --watch index.tsx",
     "start": "NODE_ENV=production bun run dist/index.js",
-    "test": "bun test",
+    "test": "bun test src",
     "relative-pathing": "./node_modules/relative-pathing/bin/relative-pathing --in ./public/projects-showcase --out ./public/projects-showcase --rules ./relative-pathing.json",
     "changeset": "bunx changeset",
     "version": "bunx changeset version",
