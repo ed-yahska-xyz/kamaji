@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.7.0
+
+### Minor Changes
+
+- [#55](https://github.com/ed-yahska-xyz/kamaji/pull/55) [`6694a7d`](https://github.com/ed-yahska-xyz/kamaji/commit/6694a7d27fdd020bac328c0886cee03a81bdd50e) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Add the World Cup 2026 predictor to the projects showcase and redesign the `/code` page as a card gallery. Each project now appears as a brutalist card with a live preview, category badge, description, and tech tags. The predictor lets you make this-or-that picks between teams that feed a Bradley–Terry model and a Zig tournament engine to simulate the bracket.
+
 ## 0.6.0
 
 ### Minor Changes
