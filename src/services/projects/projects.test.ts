@@ -59,7 +59,7 @@ describe("getProjects", () => {
     expect(result[0]!.path).toBe("/projects-showcase/boids/index.html");
   });
 
-  test("returns correct Project shape", () => {
+  test("returns correct Project shape with fallbacks for unknown project", () => {
     mockReaddirSync.mockReturnValue(["test-project"]);
     mockStatSync.mockReturnValue({ isDirectory: () => true });
 
@@ -68,6 +68,22 @@ describe("getProjects", () => {
       name: "test-project",
       displayName: "Test Project",
       path: "/projects-showcase/test-project/index.html",
+      previewSrc: "/projects-showcase/test-project/index.html",
+      badge: "Live Demo",
+      description: "",
+      tags: [],
     });
+  });
+
+  test("applies card metadata for known projects", () => {
+    mockReaddirSync.mockReturnValue(["boids"]);
+    mockStatSync.mockReturnValue({ isDirectory: () => true });
+
+    const result = getProjects();
+    expect(result[0]!.badge).toBe("Reynolds Flocking");
+    expect(result[0]!.tags).toEqual(["Zig", "WASM", "Canvas"]);
+    expect(result[0]!.previewSrc).toBe(
+      "/projects-showcase/boids/index.html?maxSpeed=3&noOfBoids=500",
+    );
   });
 });
