@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.7.2
+
+### Patch Changes
+
+- [#59](https://github.com/ed-yahska-xyz/kamaji/pull/59) [`9fb847f`](https://github.com/ed-yahska-xyz/kamaji/commit/9fb847ff9a5f84bae52e8cfc515fb51abc3c4432) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Diary grid: most recent week now renders first (leftmost), duplicate month labels are suppressed, and narrow screens get a vertical layout with left-aligned month labels and full-width day cells.
+
 ## 0.7.1
 
 ### Patch Changes
