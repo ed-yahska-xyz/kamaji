@@ -1041,24 +1041,50 @@ body {
     border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+/* Narrow screens — rotate the grid: weeks stack top-to-bottom,
+   days run left-to-right, month labels sit in a left column.
+   Scale rows and week rows share the same fixed height so they align. */
 @media (max-width: 600px) {
-    .home-contributions {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
     .contributions-frame {
+        --diary-cell: 16px;
         padding: 4px;
-        min-width: 480px;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 8px;
     }
     .contributions-scale {
+        grid-auto-flow: row;
+        grid-auto-columns: unset;
+        grid-auto-rows: var(--diary-cell);
         gap: 2px;
+        padding-bottom: 0;
+        flex: 0 0 auto;
+    }
+    .contributions-scale-cell {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 4px;
+        min-width: 4.5em;
     }
     .contributions-grid {
+        flex: 1 1 auto;
+        grid-auto-flow: row;
+        grid-template-rows: none;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-auto-rows: var(--diary-cell);
         gap: 2px;
     }
     .contributions-week {
+        grid-template-rows: none;
+        grid-template-columns: subgrid;
+        grid-row: auto;
+        grid-column: span 7;
         gap: 2px;
+    }
+    .contributions-cell {
+        aspect-ratio: auto;
+        height: 100%;
     }
 }
 

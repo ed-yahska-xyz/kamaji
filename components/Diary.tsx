@@ -40,7 +40,7 @@ export interface GridWindow {
 
 export function buildGridWindow(now: Date = new Date()): GridWindow {
   const weeks: string[][] = [];
-  for (let w = 51; w >= 0; w--) {
+  for (let w = 0; w <= 51; w++) {
     const days: string[] = [];
     for (let d = 0; d < 7; d++) {
       const date = new Date(now);
@@ -50,8 +50,8 @@ export function buildGridWindow(now: Date = new Date()): GridWindow {
     weeks.push(days);
   }
   return {
-    start: weeks[0]![0]!,
-    end: weeks[weeks.length - 1]![6]!,
+    start: weeks[weeks.length - 1]![0]!,
+    end: weeks[0]![6]!,
     weeks,
   };
 }
@@ -74,7 +74,14 @@ export const DiaryGrid: FC<DiaryGridProps> = ({ dayCounts, title = "Diary" }) =>
             const monthIdx = monthIndexFromIso(first);
             const prevMonth =
               wi > 0 ? monthIndexFromIso(weeks[wi - 1]![0]!) : -1;
-            const showMonth = monthIdx !== prevMonth;
+            const nextMonth =
+              wi + 1 < weeks.length
+                ? monthIndexFromIso(weeks[wi + 1]![0]!)
+                : -1;
+            // Skip the newest column's label when the next column already
+            // starts a new month — otherwise two labels sit side by side.
+            const showMonth =
+              monthIdx !== prevMonth && !(wi === 0 && monthIdx !== nextMonth);
             return (
               <div class="contributions-scale-cell" key={wi}>
                 {showMonth && (
