@@ -7,6 +7,7 @@ import { BlogPage } from "./pages/Blog.tsx";
 import { CodePage } from "./pages/Code.tsx";
 import { DiaryDayPage } from "./pages/Diary.tsx";
 import { DiaryLoginPage } from "./pages/DiaryLogin.tsx";
+import { DiaryTwoFactorPage } from "./pages/DiaryTwoFactor.tsx";
 import { DiaryNewPage } from "./pages/DiaryNew.tsx";
 import { DiarySearchPage } from "./pages/DiarySearch.tsx";
 import { DiarySearchResultsPage } from "./pages/DiarySearchResults.tsx";
@@ -25,7 +26,7 @@ import {
   toAppISODate,
   type DayCount,
 } from "./src/services/diary/index.ts";
-import { auth, hasAuth } from "./src/services/auth/index.ts";
+import { auth, hasAuth, authBaseUrl } from "./src/services/auth/index.ts";
 import { getProjects } from "./src/services/projects/index.ts";
 import linodeS3 from "./src/services/linode-s3"
 import { getMarkdownContent, markdownToHtml, extractToc } from "./src/services/linode-s3/markdown"
@@ -94,6 +95,45 @@ app.get("/blog", (c) => {
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const todayIso = () => toAppISODate();
 
+const loginBaseUrl = authBaseUrl;
+
+// Where to send the user after a successful sign-in. Resolves `next` against our
+// own origin and only allows the result if it lands on ed-yahska.xyz or a
+// subdomain (so the Jupyter forward-auth bounce can return the user to the lab);
+// anything else falls back to the diary.
+//
+// Resolving through the URL parser — instead of string checks — is what closes
+// the open-redirect holes: protocol-relative ("//evil.com"), backslash
+// ("/\\evil.com", which browsers fold to "//evil.com"), userinfo
+// ("https://ed-yahska.xyz@evil.com"), and non-http schemes ("javascript:...")
+// all resolve to a hostname/scheme that fails the allowlist below.
+function safeRedirect(next: string | null | undefined, fallback = "/diary/new"): string {
+  if (!next) return fallback;
+
+  let base: URL;
+  try {
+    base = new URL(loginBaseUrl);
+  } catch {
+    base = new URL("https://ed-yahska.xyz");
+  }
+
+  let target: URL;
+  try {
+    target = new URL(next, base);
+  } catch {
+    return fallback;
+  }
+
+  const hostAllowed =
+    target.hostname === base.hostname ||
+    target.hostname === "ed-yahska.xyz" ||
+    target.hostname.endsWith(".ed-yahska.xyz");
+  // https in prod; also accept the base's own scheme so http://localhost works in dev.
+  const protoAllowed = target.protocol === "https:" || target.protocol === base.protocol;
+
+  return hostAllowed && protoAllowed ? target.href : fallback;
+}
+
 function parseTagsParam(raw: string | undefined): string[] {
   if (!raw) return [];
   return [
@@ -152,12 +192,56 @@ app.get("/diary", async (c) => {
 
 // Better Auth mount — owns /api/auth/sign-in/email, /sign-out, /get-session, etc.
 if (auth) {
-  app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+  const authInstance = auth;
+  app.on(["GET", "POST"], "/api/auth/*", (c) => authInstance.handler(c.req.raw));
 }
+
+// Caddy `forward_auth` target for jupyter.ed-yahska.xyz. Caddy sub-requests
+// this with the browser's cookies on every Jupyter request: 200 -> allow,
+// 302 -> Caddy returns the redirect as-is, bouncing the user to sign in.
+// Mounted at the root (not under /api/auth/*, which Better Auth owns).
+app.get("/forward-auth", async (c) => {
+  if (!auth) return c.text("Auth unavailable", 503);
+  // disableCookieCache: this gate guards shell access, so it must read the DB
+  // and honor session revocation immediately rather than trust the (up to
+  // 5-min) signed cookie cache.
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+    query: { disableCookieCache: true },
+  });
+  if (session?.user) {
+    c.header("X-User-Email", session.user.email);
+    return c.body(null, 200);
+  }
+  const proto = c.req.header("X-Forwarded-Proto") ?? "https";
+  const host = c.req.header("X-Forwarded-Host") ?? "jupyter.ed-yahska.xyz";
+  const uri = c.req.header("X-Forwarded-Uri") ?? "/";
+  const target = `${proto}://${host}${uri}`;
+  return c.redirect(`${loginBaseUrl}/diary/login?next=${encodeURIComponent(target)}`, 302);
+});
+
+// Throttle credential + 2FA verification attempts so the 6-digit TOTP space
+// can't be brute-forced within the two-factor cookie's ~10 min lifetime. Keyed
+// per client IP (Caddy sets X-Forwarded-For), with a shared fallback. Only
+// POSTs count — GET renders of the forms pass through.
+const authRateLimiter = rateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  limit: 10,
+  // Use the LAST X-Forwarded-For entry — the address Caddy appends — not the
+  // client-supplied leftmost value, which is spoofable and would let an
+  // attacker rotate keys to dodge the limit. (kamaji is only reachable via
+  // Caddy, so the appended entry is the real client.)
+  keyGenerator: (c) => c.req.header("x-forwarded-for")?.split(",").pop()?.trim() || "global",
+  skip: (c) => c.req.method !== "POST",
+  message: "Too many attempts. Wait a few minutes and try again.",
+});
+app.use("/diary/login", authRateLimiter);
+app.use("/diary/2fa", authRateLimiter);
 
 app.get("/diary/login", async (c) => {
   if (!hasAuth()) return c.text("Auth unavailable", 503);
-  if (await isAdmin(c)) return c.redirect(c.req.query("next") || "/diary/new");
+  const next = safeRedirect(c.req.query("next"));
+  if (await isAdmin(c)) return c.redirect(next);
   return c.html(
     <Layout
       title={`Sign in - ${profile.name}`}
@@ -165,7 +249,7 @@ app.get("/diary/login", async (c) => {
       currentPath="/diary"
       pageSubtitle="Daily diary"
     >
-      <DiaryLoginPage next={c.req.query("next") ?? "/diary/new"} />
+      <DiaryLoginPage next={next} />
     </Layout>,
   );
 });
@@ -177,7 +261,7 @@ app.post("/diary/login", async (c) => {
   const form = await c.req.parseBody();
   const email = String(form.email ?? "").trim();
   const password = String(form.password ?? "");
-  const next = String(form.next ?? "/diary/new").trim() || "/diary/new";
+  const next = safeRedirect(String(form.next ?? "").trim());
 
   const renderError = (status: 400 | 401, error: string) =>
     c.html(
@@ -210,6 +294,98 @@ app.post("/diary/login", async (c) => {
   }
 
   const setCookies = authResp.headers.getSetCookie?.() ?? [];
+
+  // If the account has 2FA enabled, Better Auth returns `twoFactorRedirect`
+  // and a short-lived two-factor cookie instead of a full session. Forward
+  // that cookie and send the user to the code-entry step.
+  const payload = (await authResp
+    .clone()
+    .json()
+    .catch(() => null)) as { twoFactorRedirect?: boolean } | null;
+  if (payload?.twoFactorRedirect) {
+    const redirect = c.redirect(`/diary/2fa?next=${encodeURIComponent(next)}`);
+    for (const cookie of setCookies) {
+      redirect.headers.append("Set-Cookie", cookie);
+    }
+    return redirect;
+  }
+
+  const redirect = c.redirect(next);
+  for (const cookie of setCookies) {
+    redirect.headers.append("Set-Cookie", cookie);
+  }
+  return redirect;
+});
+
+// Second sign-in step for 2FA-enabled accounts. The two-factor cookie set by
+// the login POST identifies the pending sign-in; verifyTOTP exchanges a valid
+// code for a full session cookie.
+app.get("/diary/2fa", (c) => {
+  if (!hasAuth()) return c.text("Auth unavailable", 503);
+  const next = safeRedirect(c.req.query("next"));
+  // No pending sign-in (no two-factor cookie) → nothing to verify; send to login.
+  // Substring match covers the prod "__Secure-" cookie prefix.
+  if (!c.req.header("cookie")?.includes("two_factor")) {
+    return c.redirect(`/diary/login?next=${encodeURIComponent(next)}`);
+  }
+  return c.html(
+    <Layout
+      title={`Two-factor - ${profile.name}`}
+      profile={profile}
+      currentPath="/diary"
+      pageSubtitle="Daily diary"
+    >
+      <DiaryTwoFactorPage next={next} />
+    </Layout>,
+  );
+});
+
+app.post("/diary/2fa", async (c) => {
+  if (!auth) return c.text("Auth unavailable", 503);
+  const form = await c.req.parseBody();
+  const code = String(form.code ?? "").trim();
+  const next = safeRedirect(String(form.next ?? "").trim());
+
+  const renderError = (error: string) =>
+    c.html(
+      <Layout
+        title={`Two-factor - ${profile.name}`}
+        profile={profile}
+        currentPath="/diary"
+        pageSubtitle="Daily diary"
+      >
+        <DiaryTwoFactorPage next={next} error={error} />
+      </Layout>,
+      401,
+    );
+
+  if (!code) return renderError("Enter your authentication or backup code.");
+
+  // A plain 6-digit code is a TOTP; anything else (backup codes are
+  // "xxxxx-xxxxx", alphanumeric) is treated as a backup code. Both verify
+  // against the two-factor cookie set during the login step.
+  const isTotp = /^\d{6}$/.test(code);
+  let verifyResp: Response;
+  try {
+    verifyResp = isTotp
+      ? await auth.api.verifyTOTP({
+          body: { code },
+          headers: c.req.raw.headers, // carries the two-factor cookie
+          asResponse: true,
+        })
+      : await auth.api.verifyBackupCode({
+          body: { code },
+          headers: c.req.raw.headers,
+          asResponse: true,
+        });
+  } catch (err) {
+    console.error("[diary] 2FA verify threw:", err);
+    return renderError("Invalid or expired code.");
+  }
+
+  if (!verifyResp.ok) return renderError("Invalid or expired code.");
+
+  const setCookies = verifyResp.headers.getSetCookie?.() ?? [];
   const redirect = c.redirect(next);
   for (const cookie of setCookies) {
     redirect.headers.append("Set-Cookie", cookie);
