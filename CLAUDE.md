@@ -57,13 +57,24 @@ Sign-up is **disabled** at the HTTP layer. Only the one user created by the seed
 
 ## Auth (Better Auth)
 
-Sessions are stored server-side in Postgres (`session` table). The cookie holds an opaque token — leaking it leaks one session, not the master credential. Revoke by deleting the row.
+Sessions are stored server-side in Postgres (`session` table). The cookie holds an opaque token — leaking it leaks one session, not the master credential. Revoke by deleting the row. Revocation is **immediate for the Jupyter gate** (`/forward-auth` reads the DB via `disableCookieCache`) but the diary admin UI trusts `session.cookieCache` and can lag **up to 5 min** (`auth/index.ts`).
 
-- Library: [`better-auth`](https://www.better-auth.com/) with the built-in Kysely + `pg` adapter.
-- Tables: `user`, `session`, `account`, `verification` (migration `0002_auth.sql` in `../blogs/db`).
+- Library: [`better-auth`](https://www.better-auth.com/) with the built-in Kysely + `pg` adapter, plus the `twoFactor` plugin (TOTP).
+- Tables: `user`, `session`, `account`, `verification` (migration `0002_auth.sql`), `twoFactor` + `user.twoFactorEnabled` (migration `0003_two_factor.sql`) — both in `../blogs/db`.
 - Routes mounted at `/api/auth/*` (managed by Better Auth).
 - Our wrapper at `POST /diary/login` accepts a plain HTML form, hands it to `auth.api.signInEmail`, and forwards the session cookie. Logout via `GET /diary/logout`.
 - Hash algorithm: scrypt (Better Auth default).
+
+### Two-factor (TOTP)
+
+- Enroll once with `scripts/enable-2fa.ts` (wrapper: `scripts/enable-2fa.sh`) — signs in, prints an `otpauth://` URI + backup codes, then confirms a code to activate. **Save the backup codes** — they are the only recovery path if you lose the authenticator.
+- When enabled, `signInEmail` returns `{ twoFactorRedirect: true }` + a short-lived two-factor cookie instead of a full session. `POST /diary/login` detects this and bounces to `GET /diary/2fa`; `POST /diary/2fa` accepts a 6-digit TOTP (`verifyTOTP`) or a backup code (`verifyBackupCode`, format `xxxxx-xxxxx`) and forwards the resulting session cookie. A fully-issued session therefore implies 2FA was completed.
+- `POST /diary/login` and `POST /diary/2fa` are rate-limited (10 attempts / 5 min per IP) to bound TOTP brute force.
+
+### Cross-subdomain / Jupyter gate
+
+- On the real domain, the session cookie is scoped to `.ed-yahska.xyz` (`advanced.crossSubDomainCookies`) so siblings like `jupyter.ed-yahska.xyz` receive it; disabled on localhost. `session.cookieCache` (5 min) avoids a DB hit per request for the diary UI; the Jupyter gate opts out (see above).
+- `GET /forward-auth` is the Caddy `forward_auth` target for the Jupyter subdomain: 200 (+ `X-User-Email`) when a session exists, else 302 to `/diary/login?next=<original URL>`. `safeRedirect` resolves `next` through the URL parser and only allows relative paths or `*.ed-yahska.xyz` — this closes protocol-relative, backslash, userinfo, and non-http open-redirect bypasses. See `../virtuals/kamaji/Caddyfile`.
 
 ## Diary
 
