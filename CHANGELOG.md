@@ -1,5 +1,11 @@
 # kamaji
 
+## 0.9.0
+
+### Minor Changes
+
+- [#63](https://github.com/ed-yahska-xyz/kamaji/pull/63) [`3a0ad9e`](https://github.com/ed-yahska-xyz/kamaji/commit/3a0ad9eba817db46698a0c441f5110e33b9838ae) Thanks [@ednihs-yahska](https://github.com/ednihs-yahska)! - Bump the `projects-showcase` submodule to the latest `main`, adding the cosine-similarity article (RAG intro + sentence-embedding section) to the code gallery. The build now also copies image assets (`png`/`svg`/`jpg`/…) from `projects-showcase` into `public/`, since article-style projects embed figures via relative paths that previously 404'd in the deploy; elo's `docs/` figures and `source-data/` flag duplicates are excluded as dev-only artifacts.
+
 ## 0.8.0
 
 ### Minor Changes
