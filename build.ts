@@ -36,11 +36,17 @@ for (const output of results.outputs) {
 await cp("node_modules/htmx.org/dist/htmx.min.js", "public/js/htmx.min.js", { force: true });
 console.log("✓ Copied htmx.min.js → public/js/htmx.min.js");
 
-// Copy static assets (html, js, css, wasm) from projects-showcase to public
-const assetGlob = new Glob("projects-showcase/**/*.{html,js,css,wasm}");
+// Copy static assets from projects-showcase to public. Code assets ship from
+// every project; images ship from everything except elo, which has its own
+// curated `assets/` copy below (its `docs/` figures and `source-data/` flag
+// dupes are dev artifacts the served pages never reference).
+const codeAssetGlob = new Glob("projects-showcase/**/*.{html,js,css,wasm}");
+const imageGlob = new Glob(
+  "projects-showcase/**/*.{png,svg,jpg,jpeg,gif,webp}",
+);
 const copiedFiles: string[] = [];
 
-for await (const file of assetGlob.scan(".")) {
+const copyAsset = async (file: string) => {
   const destPath = join("public", file);
   const destDir = dirname(destPath);
 
@@ -48,6 +54,14 @@ for await (const file of assetGlob.scan(".")) {
   if (!dirExists) await mkdir(destDir, { recursive: true });
   await cp(file, destPath, { force: true });
   copiedFiles.push(file);
+};
+
+for await (const file of codeAssetGlob.scan(".")) {
+  await copyAsset(file);
+}
+for await (const file of imageGlob.scan(".")) {
+  if (file.startsWith("projects-showcase/elo/")) continue;
+  await copyAsset(file);
 }
 
 if (copiedFiles.length > 0) {
